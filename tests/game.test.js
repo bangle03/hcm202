@@ -199,16 +199,25 @@ test("choice order is stable per device and does not mutate choice IDs or routin
   assert.ok(orders.size > 1);
   assert.deepEqual(choices.map((choice) => choice.id), original);
 });
-test("20-second timeout deducts three from all five stats exactly once", () => {
+test("30-second timeout deducts all stats once and advances without choosing a branch", () => {
   const initial = { ...createInitialState(), sceneStartedAt: 1000 };
-  assert.equal(applySceneTimeout(initial, 20999), initial);
-  const timedOut = applySceneTimeout(initial, 21000);
+  assert.equal(applySceneTimeout(initial, 30999), initial);
+  const timedOut = applySceneTimeout(initial, 31000);
   assert.deepEqual(timedOut.stats, Object.fromEntries(Object.keys(initialStats).map((key) => [key, 47])));
   assert.equal(timedOut.timeoutCount, 1);
+  assert.equal(timedOut.currentSceneId, "source_check");
+  assert.equal(timedOut.gamePhase, "scene");
+  assert.equal(timedOut.history[0].choiceId, "__timeout__");
+  assert.equal(timedOut.sceneStartedAt, null);
   assert.equal(applySceneTimeout(timedOut, 99999), timedOut);
-  const chosen = applyChoice(timedOut, "ai_support");
-  assert.equal(chosen.timerExpired, true);
-  const next = advanceState(chosen);
-  assert.equal(next.timerExpired, false);
-  assert.equal(next.sceneStartedAt, null);
+  const oldPenalty = { ...initial, timerExpired: true, timeoutCount: 1, stats: timedOut.stats };
+  const migrated = applySceneTimeout(oldPenalty, 2000);
+  assert.equal(migrated.timeoutCount, 1);
+  assert.deepEqual(migrated.stats, timedOut.stats);
+  assert.equal(migrated.currentSceneId, "source_check");
+  const lastScene = { ...initial, currentSceneId: "fair_opportunity", currentChapter: 4 };
+  const checkpoint = applySceneTimeout(lastScene, 31000);
+  assert.equal(checkpoint.currentSceneId, "chapter_4_end");
+  assert.equal(checkpoint.gamePhase, "checkpoint");
+  assert.equal(checkpoint.currentCheckpoint, 4);
 });

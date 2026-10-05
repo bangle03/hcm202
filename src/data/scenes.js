@@ -10,6 +10,7 @@ const choice = (id, text, effects, consequence, nextSceneId) => ({
 export const scenes = [
   {
     id: "deadline_start",
+    timeoutNextSceneId: "source_check",
     chapterId: "chapter_1",
     time: "23:40 · Góc học tập",
     title: "Deadline còn 20 phút",
@@ -204,6 +205,7 @@ export const scenes = [
   },
   {
     id: "deepfake",
+    timeoutNextSceneId: "unverified_share",
     chapterId: "chapter_2",
     time: "12:05 · Tin nhắn đến",
     title: "Đoạn video gây xôn xao",
@@ -329,6 +331,7 @@ export const scenes = [
   },
   {
     id: "class_file",
+    timeoutNextSceneId: "class_photo",
     chapterId: "chapter_3",
     time: "09:30 · Bài tập nhóm",
     title: "Tệp của cả lớp",

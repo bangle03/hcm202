@@ -209,25 +209,24 @@ test("Firebase saves consequence, restores on refresh and retries mutation only 
   assert.deepEqual(retry.stats, saved.stats);
   assert.equal(advanceState(fresh).currentSceneId, "lecturer_question");
 });
-test("scene timer is server-stamped and a timeout mutation is persisted only once", async () => {
+test("scene timer is server-stamped and a 30-second timeout auto-advances only once", async () => {
   const initial = await startAndInitialize();
   assert.ok(Number.isFinite(initial.sceneStartedAt));
   const mutation = {
     id: "timer-once", baseRevision: initial.revision,
-    next: applySceneTimeout(initial, initial.sceneStartedAt + 20000),
+    next: applySceneTimeout(initial, initial.sceneStartedAt + 30000),
   };
   const saved = (await saveProgress(dbFor("student"), code, "student", mutation)).state;
   const retry = (await saveProgress(dbFor("student"), code, "student", mutation)).state;
   assert.equal(saved.timeoutCount, 1);
   assert.equal(retry.timeoutCount, 1);
   assert.ok(Object.values(saved.stats).every((value) => value === 47));
-  const chosen = (await persist(saved, applyChoice(saved, "ai_support"))).state;
-  const next = (await persist(chosen, advanceState(chosen))).state;
-  assert.equal(next.gamePhase, "scene");
-  assert.equal(next.timeoutCount, 1);
-  assert.equal(next.timerExpired, false);
-  assert.ok(Number.isFinite(next.sceneStartedAt));
-  assert.ok(next.sceneStartedAt >= initial.sceneStartedAt);
+  assert.equal(saved.currentSceneId, "source_check");
+  assert.equal(saved.gamePhase, "scene");
+  assert.equal(saved.history[0].choiceId, "__timeout__");
+  assert.equal(retry.currentSceneId, saved.currentSceneId);
+  assert.ok(Number.isFinite(saved.sceneStartedAt));
+  assert.ok(saved.sceneStartedAt >= initial.sceneStartedAt);
 });
 test("Firebase syncs each checkpoint and final fields; completed result remains immutable", async () => {
   let state = await startAndInitialize();

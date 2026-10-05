@@ -20,17 +20,16 @@ export default function SceneCard({ scene, disabled, onChoose, choiceSeed, remai
       <h1>{scene.title}</h1>
       <p className="scene-description">{scene.description}</p>
       <div className={`scene-countdown${remainingSeconds <= 5 && timerReady && !timerExpired ? " urgent" : ""}`} role="status">
-        <span>{timerExpired ? "Đã hết giờ" : timerReady ? "Thời gian chọn" : "Đang chuẩn bị đồng hồ…"}</span>
+        <span>{timerExpired || remainingSeconds === 0 && timerReady ? "Hết giờ · đang chuyển tình huống…" : timerReady ? "Thời gian chọn" : "Đang chuẩn bị đồng hồ…"}</span>
         {timerReady && !timerExpired && <strong>00:{String(remainingSeconds).padStart(2, "0")}</strong>}
       </div>
-      {timerExpired && <p className="notice">Hết 20 giây: mỗi chỉ số cá nhân đã giảm 3 điểm. Bạn vẫn có thể chọn để tiếp tục.</p>}
       <h2 className="choice-heading">Bạn sẽ làm gì?</h2>
       <div className="choice-list">
         {choices.map((choice) => (
           <ChoiceCard
             key={choice.id}
             choice={choice}
-            disabled={disabled || !timerReady}
+            disabled={disabled || !timerReady || timerExpired || remainingSeconds === 0}
             onChoose={onChoose}
           />
         ))}

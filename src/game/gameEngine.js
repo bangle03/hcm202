@@ -7,7 +7,8 @@ export const getSceneById = (id) => sceneMap.get(id) || null;
 export const getNextScene = (choice) => getSceneById(choice.nextSceneId);
 export const isCheckpoint = (scene) => scene?.checkpoint === true;
 export const isFinalScene = (scene) => scene?.final === true;
-export const SCENE_CHOICE_SECONDS = 20;
+export const SCENE_CHOICE_SECONDS = 30;
+const timeoutEffects = Object.fromEntries(Object.keys(initialStats).map((key) => [key, -3]));
 export function createInitialState() {
   return {
     currentSceneId: scenes[0].id,
@@ -26,16 +27,29 @@ export function createInitialState() {
 }
 export function applySceneTimeout(state, timestamp) {
   if (
-    state.gamePhase !== "scene" || state.finished || state.timerExpired ||
+    state.gamePhase !== "scene" || state.finished ||
     !Number.isFinite(state.sceneStartedAt) ||
-    timestamp < state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+    (!state.timerExpired && timestamp < state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000)
   ) return state;
-  return {
+  const scene = getSceneById(state.currentSceneId);
+  if (!scene || scene.checkpoint)
+    throw new Error("Không thể chuyển tình huống. Vui lòng thử tải lại trang.");
+  const destinations = new Set(scene.choices.map((choice) => choice.nextSceneId));
+  const destination = scene.timeoutNextSceneId || (destinations.size === 1 ? [...destinations][0] : null);
+  if (!destination)
+    throw new Error("Tình huống chưa có đường đi khi hết giờ.");
+  const penalized = {
     ...state,
-    stats: applyEffects(state.stats, Object.fromEntries(Object.keys(initialStats).map((key) => [key, -3]))),
-    timerExpired: true,
-    timeoutCount: (state.timeoutCount || 0) + 1,
+    stats: state.timerExpired ? state.stats : applyEffects(state.stats, timeoutEffects),
+    timeoutCount: (state.timeoutCount || 0) + (state.timerExpired ? 0 : 1),
+    history: [...state.history, {
+      sceneId: scene.id,
+      choiceId: "__timeout__",
+      timestamp,
+      effects: { ...timeoutEffects },
+    }],
   };
+  return moveToScene(penalized, destination);
 }
 export function applyChoice(state, choice, timestamp = Date.now()) {
   if (state.gamePhase !== "scene" || state.finished) return state;
@@ -81,6 +95,9 @@ export function advanceState(state) {
         ? scene.nextSceneId
         : null;
   if (!destination) return state;
+  return moveToScene(state, destination);
+}
+function moveToScene(state, destination) {
   const next = getSceneById(destination);
   if (!next)
     throw new Error("Không thể tải tình huống. Vui lòng thử tải lại trang.");
@@ -186,6 +203,13 @@ export function validateSceneData(content = scenes) {
       errors.push(`Kết thúc phải là checkpoint: ${scene.id}`);
     if (scene.checkpoint && !scene.final && !ids.has(scene.nextSceneId))
       errors.push(`Checkpoint thiếu đích: ${scene.id}`);
+    if (!scene.checkpoint) {
+      const destinations = new Set((scene.choices || []).map((choice) => choice.nextSceneId));
+      if (scene.timeoutNextSceneId && !ids.has(scene.timeoutNextSceneId))
+        errors.push(`Đích hết giờ không tồn tại: ${scene.id}`);
+      if (destinations.size > 1 && !scene.timeoutNextSceneId)
+        errors.push(`Tình huống phân nhánh thiếu đích hết giờ: ${scene.id}`);
+    }
     const choices = new Set();
     for (const choice of scene.choices || []) {
       if (choices.has(choice.id))

@@ -117,8 +117,8 @@ export function useGameState({ code, uid, startedAt, player, online, serverNow }
   useEffect(() => {
     if (
       online && !pending && state?.gamePhase === "scene" &&
-      !state.timerExpired && Number.isFinite(state.sceneStartedAt) &&
-      serverNow >= state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+      Number.isFinite(state.sceneStartedAt) &&
+      (state.timerExpired || serverNow >= state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000)
     ) transition((current) => applySceneTimeout(current, serverNow));
   }, [online, pending, state, serverNow, transition]);
   const invalid = stateError(state);
@@ -133,8 +133,9 @@ export function useGameState({ code, uid, startedAt, player, online, serverNow }
     notice,
     saving: !!pending,
     choose: (id) => transition((current) =>
-      !current.timerExpired && Number.isFinite(current.sceneStartedAt) &&
-      serverNow >= current.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+      !Number.isFinite(current.sceneStartedAt)
+        ? current
+        : current.timerExpired || serverNow >= current.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
         ? applySceneTimeout(current, serverNow)
         : applyChoice(current, id)),
     continueGame: () => transition(advanceState),

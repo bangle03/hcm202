@@ -31,12 +31,16 @@ export default function PersonalGame(props) {
     ? Math.max(0, Math.ceil((state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000 - props.serverNow) / 1000))
     : SCENE_CHOICE_SECONDS;
   const community = shouldShowCommunity(state, props.room);
+  const lastAction = state.history[state.history.length - 1];
   return (
     <div className="personal-game">
       {notice && (
         <p className="notice" role="status">
           {notice}
         </p>
+      )}
+      {lastAction?.choiceId === "__timeout__" && (
+        <p className="notice" role="status">Đã hết 30 giây ở tình huống trước: mỗi chỉ số giảm 3 điểm. Game đã tự chuyển tiếp.</p>
       )}
       {error && (
         <div className="notice error" role="alert">
