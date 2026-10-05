@@ -24,7 +24,11 @@ export function useRoom(code, user, role) {
           error: snap.exists() ? "" : "Phòng không tồn tại hoặc đã bị xóa.",
         }),
       (error) =>
-        setState({ room: null, loading: false, error: errorMessage(error) }),
+        setState((previous) => ({
+          ...previous,
+          loading: false,
+          error: errorMessage(error),
+        })),
     );
   }, [code, user]);
   const member =

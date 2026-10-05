@@ -4,9 +4,11 @@ Web game lớp học cho khoảng 35 sinh viên, chủ đề **Đạo đức và
 
 ## Phạm vi hiện tại
 
-Đã triển khai **Phase 1 + Phase 2**: React, Vite, Tailwind, routing, Firebase Anonymous Auth, tạo mã phòng 6 ký tự, tham gia bằng UID, danh sách realtime, host bắt đầu và mọi player nhận trạng thái mới. Giao diện tiếng Việt, mobile và màn hình trình chiếu. Phiên đăng nhập Firebase và mã phòng localStorage giữ đường quay lại sau refresh.
+Đã triển khai **Phase 1–3**: React, Vite, Tailwind, Firebase Anonymous Auth, phòng realtime và hành trình cá nhân gồm 4 chương, 15 tình huống hành động, 4 checkpoint. Có phân nhánh, hậu quả, 5 chỉ số, lưu/khôi phục tiến trình và hồ sơ cuối game. Luồng tạo phòng → tham gia → chờ → bắt đầu được giữ nguyên.
 
-**Đây chưa phải game hoàn chỉnh.** Màn hình sau khi bắt đầu chủ động thông báo phạm vi bản dựng. Chưa triển khai scene, chỉ số, Community Event, hồ sơ, leaderboard hoặc giải thưởng. Chờ xác nhận trước Phase 3 theo yêu cầu ban đầu. Nội dung học thuật cần tài liệu nguồn của giảng viên trước khi hoàn thiện.
+**Chưa triển khai Community Event, leaderboard hoặc giải thưởng.** Nội dung MVP dựa trên nguyên tắc người dùng cung cấp, chưa đối chiếu tài liệu học thuật gốc. Xem [báo cáo Phase 3](PHASE3.md) để biết schema, các file, cách kiểm thử và phần dành cho Phase 4.
+
+**Khi nâng cấp từ Phase 2:** publish lại toàn bộ `firebase.rules.json` trong Firebase Console rồi redeploy Vercel. Rules cũ chỉ cho phép tiến trình bằng 0 nên sẽ từ chối lưu gameplay. Không cần xóa phòng cũ: người chơi chưa có state sẽ bắt đầu hành trình khi phòng đang chơi.
 
 Frontend deploy **Vercel**, dữ liệu dùng **Firebase Realtime Database**. Không có Express, Socket.IO, Firestore, Cloud Functions hay backend riêng.
 
@@ -48,7 +50,7 @@ Nếu chưa có cấu hình, trang vẫn hiển thị giao diện và thông bá
 
 Vercel chỉ phục vụ frontend. Auth và RTDB chạy trực tiếp trên Firebase. Cần publish rules ở Firebase riêng; deploy Vercel không tự publish rules.
 
-## Schema RTDB (Phase 2)
+## Schema phòng RTDB (các trường nền tảng Phase 2)
 
 ```text
 rooms/{roomCode}
@@ -72,7 +74,7 @@ rooms/{roomCode}
 
 `connected` được suy ra từ việc `connections` có phần tử. Mỗi tab đăng ký một connection và `onDisconnect().remove()` trước khi đánh dấu online. Nhờ đó đóng một tab không làm mất trạng thái online của tab còn lại. Firebase có thể cần thời gian phát hiện mất mạng đột ngột.
 
-`activeCommunityEventId`, nhánh `community`, `finalScore` và dữ liệu gameplay sẽ được thêm cùng rules tương ứng ở phase sau; hiện rules cố ý chặn các trường chưa triển khai.
+Phase 3 bổ sung tiến trình và kết quả dưới `players/{uid}`, xem schema trong `PHASE3.md`. `activeCommunityEventId` và nhánh `community` sẽ được thêm cùng rules ở Phase 4.
 
 ## Đồng bộ và quyền truy cập
 
@@ -80,7 +82,7 @@ rooms/{roomCode}
 - Đọc một phòng theo mã: cần đăng nhập ẩn danh. Mã phòng là thông tin để truy cập, không phải cơ chế bảo mật mạnh cho dữ liệu nhạy cảm.
 - Tham gia: atomic update đồng thời `players/{uid}` và một trong 35 `seats`; rules kiểm tra chỗ còn trống, liên kết UID ↔ chỗ và trạng thái chờ ở phía server. Client thử chỗ khác khi có tranh chấp. Nếu hai người tranh suất cuối hoặc host đã bắt đầu, server từ chối lượt không hợp lệ.
 - Bắt đầu: host transaction trên phòng, kiểm tra trạng thái và ít nhất một người online. Ghi `playing` và `gameStartedAt` cùng lúc; không cập nhật lẻ từng player.
-- Player chỉ tạo bản ghi của chính mình; sau đó chỉ ghi presence của mình. Không tự đổi tên, tiến trình, trạng thái phòng hoặc ghi sang UID khác. Host điều khiển phòng.
+- Player chỉ tạo bản ghi của chính mình; khi phòng bắt đầu, được ghi tiến trình của mình với phiên bản tăng dần. Không đổi tên, seat, UID host hoặc trạng thái phòng và không ghi sang UID khác. Host điều khiển phòng.
 - Presence và listener được dọn khi rời màn hình. Không xóa bản ghi người chơi khi mất mạng, để refresh có thể khôi phục.
 - Người đã tham gia có thể quay lại sau khi bắt đầu; UID mới không được vào giữa buổi.
 - Hai tab cùng trình duyệt dùng chung UID. Muốn test nhiều người, dùng các browser/profile khác nhau. Host và player phải dùng UID khác nhau.
@@ -102,7 +104,7 @@ src/
   styles.css   Tailwind + giao diện responsive
 ```
 
-Phase 3 sẽ thêm `data/` và `game/`, giữ nội dung độc lập với engine.
+`data/`, `game/`, `components/game/`, `gameService`, `useGameState` và `ResultPage` đã được bổ sung trong Phase 3; xem `PHASE3.md`.
 
 ## Kiểm thử tự động
 
@@ -114,7 +116,7 @@ Phase 3 sẽ thêm `data/` và `game/`, giữ nội dung độc lập với engi
 2. Browser/profile khác `/`: nhập tên + mã, host nhận danh sách realtime.
 3. Refresh cả host/player: mã, UID và danh sách còn đúng.
 4. Mở 2 tab player rồi đóng một tab: vẫn online; đóng hết và chờ Firebase phát hiện ngắt: offline.
-5. Host Start: mọi player chuyển sang thông báo bắt đầu; nhấn lại không thay thời điểm bắt đầu.
+5. Host Start: mọi player chuyển sang tình huống đầu tiên; nhấn lại không thay thời điểm bắt đầu.
 6. Người mới vào sau Start bị từ chối, UID cũ vẫn quay lại được.
 7. Kiểm tra 35 người và 2 lượt cạnh tranh suất cuối: không vượt 35.
 8. Kiểm tra ở điện thoại rộng 360px và laptop/projector; tên dài không phá bố cục.
@@ -124,7 +126,7 @@ Firebase có hạn mức tạo anonymous account theo IP. Trước buổi học,
 
 ## Tài liệu kỹ thuật
 
-Kiểm tra bản dựng ngày 05/10/2026: build và lint thành công; 6/6 kiểm thử Firebase Emulator thành công; giao diện được kiểm tra ở 360px và 1366px, không ghi nhận lỗi console trong lượt kiểm tra. `npm audit --omit=dev` báo 0 lỗ hổng. Nhánh công cụ phát triển Firebase CLI 14 (để tương thích Java 17) còn cảnh báo dependency từ `npm audit` đầy đủ; CLI không được đóng gói vào frontend. Chưa thử Authentication/RTDB production hoặc 35 thiết bị thật vì chưa có cấu hình Firebase của dự án.
+Kiểm tra Phase 3 ngày 05/10/2026: build/lint đạt, 18/18 kiểm thử engine + Firebase Emulator đạt (gồm 6 kiểm thử phòng Phase 2). Đã thử trên trình duyệt: host tạo/bắt đầu, player chơi hết 4 chương, refresh tại hậu quả và kết quả, host nhận checkpoint/finished. Kiểm tra bố cục 390px và 1366px; không ghi nhận lỗi console. Lượt kiểm tra này dùng project demo cục bộ, chưa deploy rules hoặc kiểm tra tải 35 thiết bị trên Firebase production. Nhánh công cụ Firebase CLI 14 giữ để tương thích Java 17; các cảnh báo dependency công cụ phát triển đã nêu ở Phase 2 chưa nằm trong phạm vi nâng cấp này.
 
 - [Firebase Anonymous Authentication](https://firebase.google.com/docs/auth/web/anonymous-auth)
 - [Firebase transactions](https://firebase.google.com/docs/database/web/read-and-write)

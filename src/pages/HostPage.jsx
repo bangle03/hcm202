@@ -68,7 +68,7 @@ export default function HostPage() {
           >
             {busy ? "Đang tạo phòng…" : "Tạo phòng"} <span>↗</span>
           </button>
-          <small>Bản dựng kết nối lớp học · Phase 1 + 2</small>
+          <small>4 chương · Mỗi người một hành trình</small>
         </section>
       ) : (
         <>
@@ -85,7 +85,7 @@ export default function HostPage() {
                   <h1>
                     {room.status === "waiting"
                       ? "Cùng nhau, sẵn sàng."
-                      : "Kết nối đã sẵn sàng."}
+                      : "Những lựa chọn đang tiếp diễn."}
                   </h1>
                   <p>
                     {online
@@ -126,11 +126,15 @@ export default function HostPage() {
                   <span>Đang kết nối</span>
                 </div>
                 <div>
-                  <strong>{room.status === "waiting" ? "01" : "02"}</strong>
+                  <strong>
+                    {room.status === "waiting"
+                      ? "01"
+                      : players.filter((player) => player.finished).length}
+                  </strong>
                   <span>
                     {room.status === "waiting"
                       ? "Sẵn sàng vào lớp"
-                      : "Đã gửi tín hiệu bắt đầu"}
+                      : "Đã hoàn thành hành trình"}
                   </span>
                 </div>
               </div>
@@ -152,8 +156,24 @@ export default function HostPage() {
                 </div>
               ) : (
                 <div className="notice">
-                  Đã hoàn thành luồng tạo phòng → tham gia → bắt đầu. Gameplay,
-                  sự kiện toàn lớp và bảng kết quả sẽ có ở các phase tiếp theo.
+                  Mỗi người đang tự khám phá hành trình của mình. Tiến trình
+                  được lưu khi lựa chọn, chuyển tình huống và hoàn thành chương.
+                  <div className="host-checkpoints">
+                    {[1, 2, 3, 4].map((chapter) => (
+                      <span key={chapter}>
+                        Chương {chapter}:{" "}
+                        <strong>
+                          {
+                            players.filter(
+                              (player) => player.currentCheckpoint >= chapter,
+                            ).length
+                          }
+                          /{players.length}
+                        </strong>{" "}
+                        hoàn thành
+                      </span>
+                    ))}
+                  </div>
                 </div>
               )}
             </>

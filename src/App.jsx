@@ -3,6 +3,7 @@ import Layout from "./components/Layout";
 import JoinPage from "./pages/JoinPage";
 import HostPage from "./pages/HostPage";
 import PlayerGamePage from "./pages/PlayerGamePage";
+import ResultPage from "./pages/ResultPage";
 export default function App() {
   return (
     <Layout>
@@ -10,6 +11,7 @@ export default function App() {
         <Route path="/" element={<JoinPage />} />
         <Route path="/host" element={<HostPage />} />
         <Route path="/play" element={<PlayerGamePage />} />
+        <Route path="/result" element={<ResultPage />} />
         <Route
           path="*"
           element={

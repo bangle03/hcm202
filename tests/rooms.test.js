@@ -152,3 +152,133 @@ test("room collision cannot overwrite host and invalid player data rejected", as
   await assertFails(join("student", "1", { name: "x".repeat(31) }));
   await assertFails(join("student", "36"));
 });
+import { saveProgress } from "../src/firebase/gameService.js";
+import {
+  createInitialState,
+  applyChoice,
+  advanceState,
+  getSceneById,
+  restoreState,
+} from "../src/game/gameEngine.js";
+async function startAndInitialize() {
+  await join("student");
+  await update(ref(dbFor("host"), roomPath), {
+    status: "playing",
+    gameStartedAt: serverTimestamp(),
+  });
+  return (
+    await saveProgress(dbFor("student"), code, "student", {
+      id: "init",
+      baseRevision: 0,
+      next: createInitialState(),
+    })
+  ).state;
+}
+async function persist(state, next, id = crypto.randomUUID()) {
+  return saveProgress(dbFor("student"), code, "student", {
+    id,
+    baseRevision: state.revision,
+    next,
+  });
+}
+test("Firebase saves consequence, restores on refresh and retries mutation only once", async () => {
+  const state = await startAndInitialize();
+  const mutation = {
+    id: "choice-once",
+    baseRevision: state.revision,
+    next: applyChoice(state, "ai_all", 1000),
+  };
+  const saved = (
+    await saveProgress(dbFor("student"), code, "student", mutation)
+  ).state;
+  const retry = (
+    await saveProgress(dbFor("student"), code, "student", mutation)
+  ).state;
+  const fresh = restoreState(
+    (await get(ref(dbFor("student"), `${roomPath}/players/student`))).val(),
+  );
+  assert.equal(fresh.gamePhase, "consequence");
+  assert.equal(fresh.selectedChoiceId, "ai_all");
+  assert.equal(fresh.stats.tuLuc, 30);
+  assert.equal(fresh.history.length, 1);
+  assert.equal(retry.revision, saved.revision);
+  assert.deepEqual(retry.stats, saved.stats);
+  assert.equal(advanceState(fresh).currentSceneId, "lecturer_question");
+});
+test("Firebase syncs each checkpoint and final fields; completed result remains immutable", async () => {
+  let state = await startAndInitialize();
+  const checkpoints = [];
+  for (let i = 0; i < 70 && !state.finished; i++) {
+    const next =
+      state.gamePhase === "scene"
+        ? applyChoice(state, getSceneById(state.currentSceneId).choices[0])
+        : advanceState(state);
+    state = (await persist(state, next)).state;
+    if (state.gamePhase === "checkpoint") {
+      const stored = (
+        await get(ref(dbFor("host"), `${roomPath}/players/student`))
+      ).val();
+      checkpoints.push(stored.currentCheckpoint);
+      assert.equal(stored.currentChapter, stored.currentCheckpoint);
+    }
+  }
+  assert.deepEqual(checkpoints, [1, 2, 3, 4]);
+  const stored = (
+    await get(ref(dbFor("host"), `${roomPath}/players/student`))
+  ).val();
+  assert.equal(stored.finished, true);
+  assert.equal(stored.finalScore, state.finalScore);
+  assert.ok(stored.finishedAt > 0);
+  await assertFails(
+    update(ref(dbFor("student"), `${roomPath}/players/student`), {
+      finalScore: 0,
+      revision: state.revision + 1,
+    }),
+  );
+  await assertSucceeds(
+    set(
+      ref(
+        dbFor("student"),
+        `${roomPath}/players/student/connections/after_finish`,
+      ),
+      serverTimestamp(),
+    ),
+  );
+});
+test("concurrent choices from two tabs commit one revision and retain presence", async () => {
+  const state = await startAndInitialize();
+  await set(
+    ref(dbFor("student"), `${roomPath}/players/student/connections/tab`),
+    serverTimestamp(),
+  );
+  const result = await Promise.all([
+    persist(state, applyChoice(state, "ai_all"), "tab-a"),
+    persist(state, applyChoice(state, "ai_support"), "tab-b"),
+  ]);
+  assert.equal(result.filter((value) => value.conflict).length, 1);
+  const stored = (
+    await get(ref(dbFor("host"), `${roomPath}/players/student`))
+  ).val();
+  assert.equal(stored.revision, state.revision + 1);
+  assert.equal(stored.history.length, 1);
+  assert.ok(stored.connections.tab);
+});
+test("game writes reject another UID, stats outside range, identity changes and premature final score", async () => {
+  const state = await startAndInitialize();
+  const target = ref(dbFor("student"), `${roomPath}/players/student`);
+  await assertFails(
+    update(ref(dbFor("other"), `${roomPath}/players/student`), {
+      revision: state.revision + 1,
+      currentCheckpoint: 1,
+    }),
+  );
+  await assertFails(
+    update(target, { revision: state.revision + 1, "stats/tuLuc": 101 }),
+  );
+  await assertFails(
+    update(target, { revision: state.revision + 1, name: "Impersonation" }),
+  );
+  await assertFails(
+    update(target, { revision: state.revision + 1, finalScore: 100 }),
+  );
+});

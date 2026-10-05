@@ -752,3 +752,359 @@ form .primary {
     animation: none !important;
   }
 }
+/* Personal journey: Phase 3 */
+.personal-game {
+  margin-top: 20px;
+}
+.save-status {
+  font-size: 11px;
+  color: #73816c;
+  min-height: 24px;
+  line-height: 1.7;
+}
+.chapter-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 23px 0;
+}
+.chapter-header h2 {
+  font-size: 22px;
+  letter-spacing: -0.025em;
+  margin: 10px 0 0;
+}
+.chapter-progress {
+  display: flex;
+  list-style: none;
+  padding: 0;
+  gap: 8px;
+}
+.chapter-progress li {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d8dfd0;
+  border-radius: 50%;
+  color: #939d8a;
+  font-size: 12px;
+}
+.chapter-progress .current {
+  background: #e6eddc;
+  border-color: #7e9868;
+  color: #405d35;
+}
+.chapter-progress .complete {
+  background: #294a36;
+  border-color: #294a36;
+  color: #eef4e6;
+}
+.game-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 255px;
+  gap: 26px;
+  align-items: start;
+}
+.game-main {
+  min-width: 0;
+}
+.story-card {
+  padding: 36px;
+}
+.scene-time {
+  color: #6e8361;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+.story-card h1 {
+  font-size: clamp(27px, 3vw, 40px);
+  margin: 24px 0;
+  line-height: 1.25;
+}
+.scene-description {
+  font-size: 16px;
+  color: #64725e;
+  line-height: 1.9;
+}
+.choice-heading {
+  font-size: 13px;
+  margin: 28px 0 15px;
+}
+.choice-list {
+  display: grid;
+  gap: 12px;
+}
+.choice-card {
+  text-align: left;
+  width: 100%;
+  min-height: 72px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 1px solid #dce3d2;
+  border-radius: 10px;
+  background: #f8faf3;
+  color: #354c2e;
+  line-height: 1.65;
+  font-size: 14px;
+  transition:
+    border-color 0.18s,
+    background 0.18s;
+}
+.choice-card:hover:not(:disabled) {
+  background: #edf3e2;
+  border-color: #819a6a;
+}
+.choice-card > span:last-child {
+  font-size: 20px;
+}
+.scene-footnote {
+  font-size: 11px;
+  color: #929b88;
+  margin: 22px 0 0;
+  line-height: 1.7;
+}
+.stats-panel {
+  padding: 22px;
+}
+.stats-panel summary {
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.stats-panel summary span {
+  display: block;
+  font-size: 10px;
+  font-weight: 400;
+  color: #8a967f;
+  margin-top: 5px;
+}
+.stats-content {
+  margin-top: 25px;
+}
+.stats-content > p {
+  color: #909984;
+  font-size: 10px;
+  margin: 25px 0 0;
+}
+.stat-row {
+  margin: 0 0 19px;
+}
+.stat-row > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  font-size: 12px;
+  margin-bottom: 9px;
+  color: #6b795f;
+}
+.stat-row strong {
+  color: #3c5731;
+  font-weight: 600;
+}
+.stat-track {
+  background: #e9edde;
+  border-radius: 8px;
+  height: 6px;
+  overflow: hidden;
+}
+.stat-track > span {
+  display: block;
+  height: 100%;
+  background: #819c65;
+  border-radius: inherit;
+  transition: width 0.4s ease;
+}
+.effect-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin: 20px 0;
+}
+.effect {
+  font-size: 12px;
+  padding: 9px 12px;
+  border-radius: 7px;
+  background: #eaf0df;
+  color: #536f37;
+  animation: stat-enter 0.25s ease-out;
+}
+.effect.decrease {
+  background: #f1e9db;
+  color: #84653f;
+}
+.consequence-card .primary,
+.checkpoint-card .primary {
+  margin-top: 28px;
+  width: 100%;
+}
+.checkpoint-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 28px;
+  margin-top: 30px;
+}
+.checkpoint-card .eyebrow {
+  margin-top: 20px;
+}
+.final-profile {
+  padding: 40px;
+  margin-top: 25px;
+}
+.final-profile > .eyebrow {
+  justify-content: center;
+}
+.mastery-score {
+  margin: 30px auto 12px;
+  width: 174px;
+  height: 174px;
+  border: 1px solid #99ad7e;
+  outline: 7px solid #edf1e6;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #e5edd8;
+}
+.mastery-score strong {
+  font-size: 64px;
+  line-height: 1.15;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  color: #34502a;
+}
+.mastery-score span {
+  font-size: 11px;
+  color: #698351;
+}
+.result-caption {
+  text-align: center;
+  color: #849077;
+  font-size: 12px;
+  margin: 24px 0 34px;
+}
+.final-columns {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 50px;
+  align-items: start;
+}
+.profile-reflection h1 {
+  font-size: 30px;
+  line-height: 1.3;
+  margin: 15px 0;
+}
+.profile-reflection p {
+  font-size: 13px;
+  color: #78836d;
+}
+.profile-reflection h2 {
+  font-size: 13px;
+  margin-top: 22px;
+}
+.result-note {
+  border-top: 1px solid #e3e8da;
+  margin: 30px 0 0;
+  padding-top: 22px;
+  font-size: 11px;
+  color: #929b88;
+}
+.host-checkpoints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 25px;
+  margin-top: 15px;
+}
+@keyframes stat-enter {
+  from {
+    opacity: 0.3;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 899px) {
+  .game-layout {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .stats-panel summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .stats-panel summary span {
+    margin-top: 0;
+  }
+  .stats-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 25px;
+  }
+  .stats-content > p {
+    margin: 0;
+  }
+}
+@media (max-width: 650px) {
+  .story-card {
+    padding: 25px 20px;
+  }
+  .chapter-header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .chapter-header h2 {
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  .chapter-progress {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .chapter-progress li {
+    width: 24px;
+    height: 24px;
+    font-size: 10px;
+  }
+  .scene-description {
+    font-size: 15px;
+  }
+  .choice-card {
+    font-size: 14px;
+    padding: 16px;
+    min-height: 75px;
+  }
+  .story-card h1 {
+    font-size: 29px;
+  }
+  .checkpoint-stats {
+    grid-template-columns: 1fr;
+  }
+  .final-profile {
+    padding: 28px 22px;
+  }
+  .final-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .profile-reflection h1 {
+    font-size: 27px;
+  }
+  .stats-content {
+    grid-template-columns: 1fr;
+  }
+  .chapter-header .eyebrow {
+    line-height: 1.7;
+  }
+}
+
+.game-main:focus {
+  outline: none;
+}

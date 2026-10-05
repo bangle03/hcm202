@@ -1,0 +1,494 @@
+// Nội dung MVP được biên soạn từ các nguyên tắc trong yêu cầu của giảng viên.
+// Không phải trích dẫn học thuật; cần đối chiếu tài liệu môn học trước buổi dạy.
+const choice = (id, text, effects, consequence, nextSceneId) => ({
+  id,
+  text,
+  effects,
+  consequence,
+  nextSceneId,
+});
+export const scenes = [
+  {
+    id: "deadline_start",
+    chapterId: "chapter_1",
+    time: "23:40 · Góc học tập",
+    title: "Deadline còn 20 phút",
+    description:
+      "Phần phân tích của bài báo cáo vẫn còn dang dở. AI đề nghị viết toàn bộ phần còn lại. Bạn phải quyết định mình sẽ đóng góp như thế nào vào bài nộp.",
+    choices: [
+      choice(
+        "ai_all",
+        "Để AI viết phần còn lại và nộp nguyên văn",
+        { hieuSuat: 15, tuLuc: -20, liemChinh: -15 },
+        "Bạn kịp nộp bài. Nhưng lập luận chính chưa đi qua suy nghĩ của bạn, và người đọc không biết AI đã viết phần nào.",
+        "lecturer_question",
+      ),
+      choice(
+        "ai_support",
+        "Nhờ AI gợi ý cấu trúc, sau đó tự viết",
+        { hieuSuat: 8, tuLuc: 8, trachNhiem: 6 },
+        "Một dàn ý giúp bạn gỡ nút thắt. Bạn vẫn phải tự lựa chọn dẫn chứng và chịu trách nhiệm về lập luận.",
+        "source_check",
+      ),
+      choice(
+        "self_only",
+        "Tự hoàn thành và chấp nhận bài ngắn hơn",
+        { tuLuc: 12, hieuSuat: -8 },
+        "Bạn hiểu rõ từng ý mình viết. Đổi lại, thời gian gấp khiến bài chưa bao quát hết những điều bạn muốn nói.",
+        "source_check",
+      ),
+    ],
+  },
+  {
+    id: "lecturer_question",
+    chapterId: "chapter_1",
+    time: "09:00 · Sau giờ học",
+    title: "“Em giải thích lập luận này nhé?”",
+    description:
+      "Giảng viên chỉ vào đoạn AI đã viết. Bạn nhận ra mình chưa hiểu cách dẫn chứng kết nối với kết luận.",
+    choices: [
+      choice(
+        "admit",
+        "Nói rõ phần AI hỗ trợ và xin bổ sung lập luận của mình",
+        { liemChinh: 12, trachNhiem: 10, hieuSuat: -8 },
+        "Bạn cần thêm thời gian để sửa bài. Việc nhận trách nhiệm mở ra cơ hội học lại phần mình chưa hiểu.",
+        "source_check",
+      ),
+      choice(
+        "improvise",
+        "Diễn giải lại bằng những từ có vẻ thuyết phục",
+        { hieuSuat: 4, liemChinh: -8, tuLuc: -6 },
+        "Bạn tạm giữ nhịp trao đổi, nhưng câu hỏi tiếp theo có thể làm lộ khoảng trống trong hiểu biết.",
+        "source_check",
+      ),
+      choice(
+        "rebuild",
+        "Xin vài phút tự xây lại lập luận bằng ví dụ của mình",
+        { tuLuc: 10, trachNhiem: 4, hieuSuat: -6 },
+        "Bạn bắt đầu hiểu bằng cách tự làm. Bạn vẫn cần nói rõ việc đã sử dụng AI trong bản nộp.",
+        "source_check",
+      ),
+    ],
+  },
+  {
+    id: "source_check",
+    chapterId: "chapter_1",
+    time: "10:15 · Thư viện",
+    title: "Một nguồn nghe rất đáng tin",
+    description:
+      "AI đưa ra một tài liệu phù hợp với bài của bạn, nhưng không có đường dẫn gốc. Tên tác giả và nội dung tóm tắt trông rất chuyên nghiệp.",
+    choices: [
+      choice(
+        "trace",
+        "Tìm tài liệu gốc rồi mới dùng làm dẫn chứng",
+        { trachNhiem: 9, tuLuc: 5, hieuSuat: -6 },
+        "Việc tìm nguồn tốn thời gian, nhưng giúp bạn biết tài liệu có tồn tại và có thực sự nói điều AI tóm tắt hay không.",
+        "disclosure",
+      ),
+      choice(
+        "omit",
+        "Bỏ dẫn chứng này, dùng nguồn mình đã đọc",
+        { liemChinh: 7, hieuSuat: 2, tuLuc: 3 },
+        "Bài có ít dẫn chứng hơn. Đổi lại, bạn có thể giải thích và chịu trách nhiệm với những nguồn được giữ lại.",
+        "disclosure",
+      ),
+      choice(
+        "trust",
+        "Dùng luôn vì thông tin có vẻ hợp lý",
+        { hieuSuat: 9, trachNhiem: -12 },
+        "Bạn viết nhanh hơn, nhưng độ tin cậy của dẫn chứng vẫn chưa được xác nhận.",
+        "disclosure",
+      ),
+    ],
+  },
+  {
+    id: "disclosure",
+    chapterId: "chapter_1",
+    time: "16:30 · Bản nộp cuối",
+    title: "Tên bạn trên trang bìa",
+    description:
+      "Nhóm chuẩn bị nộp bài. Một bạn hỏi có nên ghi rõ AI đã hỗ trợ dàn ý và chỉnh câu không. Lớp yêu cầu minh bạch về việc sử dụng AI.",
+    choices: [
+      choice(
+        "specific",
+        "Ghi rõ phần AI hỗ trợ và phần nhóm tự thực hiện",
+        { liemChinh: 10, trachNhiem: 7, hieuSuat: -3 },
+        "Người đọc thấy rõ đóng góp của nhóm. Bạn dành thêm chút thời gian để mô tả đúng quy trình đã làm.",
+        "chapter_1_end",
+      ),
+      choice(
+        "vague",
+        "Chỉ ghi “có tham khảo công cụ số”",
+        { hieuSuat: 3, liemChinh: -5 },
+        "Lời ghi chú ngắn gọn, nhưng chưa giúp người đọc hiểu AI đã tham gia đến mức nào.",
+        "chapter_1_end",
+      ),
+      choice(
+        "rewrite",
+        "Tự viết lại phần AI soạn và vẫn ghi nhận quá trình hỗ trợ",
+        { tuLuc: 10, liemChinh: 8, hieuSuat: -9 },
+        "Bạn hiểu nội dung sâu hơn và làm rõ quá trình làm bài. Chi phí là thêm một buổi chỉnh sửa.",
+        "chapter_1_end",
+      ),
+    ],
+  },
+  {
+    id: "chapter_1_end",
+    chapterId: "chapter_1",
+    title: "Học tập cùng AI",
+    checkpoint: true,
+    nextSceneId: "citation",
+    choices: [],
+  },
+  {
+    id: "citation",
+    chapterId: "chapter_2",
+    time: "08:20 · Nhóm thảo luận",
+    title: "Trích dẫn không tìm thấy",
+    description:
+      "Một trích dẫn do AI tạo có đủ tác giả, năm và tên tạp chí. Bạn tìm nhanh nhưng chưa thấy bài gốc. Nhóm đang chờ để hoàn thiện slide.",
+    choices: [
+      choice(
+        "verify",
+        "Tra cứu trang tạp chí và đối chiếu nội dung gốc",
+        { trachNhiem: 10, tuLuc: 4, hieuSuat: -7 },
+        "Bạn phát hiện chi tiết chưa khớp. Nhóm cần sửa slide thay vì xem hình thức học thuật là bằng chứng.",
+        "deepfake",
+      ),
+      choice(
+        "replace",
+        "Thay bằng nguồn đã kiểm chứng, chấp nhận đổi lập luận",
+        { liemChinh: 8, trachNhiem: 6, hieuSuat: -4 },
+        "Slide phải viết lại một phần, nhưng lập luận giờ dựa trên tài liệu cả nhóm có thể đọc.",
+        "deepfake",
+      ),
+      choice(
+        "keep",
+        "Giữ trích dẫn, dự định kiểm tra sau buổi trình bày",
+        { hieuSuat: 10, liemChinh: -8, trachNhiem: -9 },
+        "Nhóm xong slide sớm. Tuy nhiên, khán giả có thể tiếp nhận một nguồn không tồn tại trước khi bạn kịp kiểm tra.",
+        "deepfake",
+      ),
+    ],
+  },
+  {
+    id: "deepfake",
+    chapterId: "chapter_2",
+    time: "12:05 · Tin nhắn đến",
+    title: "Đoạn video gây xôn xao",
+    description:
+      "Một video có giọng nói giống giảng viên đang lan truyền. Bạn chưa biết video có bị chỉnh sửa hay tạo bằng AI không. Một người bạn nhờ bạn gửi tiếp.",
+    choices: [
+      choice(
+        "private_check",
+        "Hỏi nguồn và kiểm chứng riêng trước khi chia sẻ",
+        { trachNhiem: 9, nhanAi: 7, hieuSuat: -5 },
+        "Bạn tránh làm video lan rộng trong lúc chưa rõ sự thật. Người bạn phải chờ thay vì nhận câu trả lời ngay.",
+        "unverified_share",
+      ),
+      choice(
+        "share_warning",
+        "Chuyển tiếp vào nhóm với lời nhắn “chưa chắc thật”",
+        { hieuSuat: 7, nhanAi: -8, trachNhiem: -10 },
+        "Lời cảnh báo không ngăn mọi người tải lại và chia sẻ. Video tiếp cận thêm người, dù chưa được xác minh.",
+        "repair_rumor",
+      ),
+      choice(
+        "report",
+        "Báo riêng cho người quản lý nhóm, không gửi tiếp",
+        { nhanAi: 9, trachNhiem: 6, hieuSuat: -3 },
+        "Bạn giúp nhóm chú ý đến rủi ro. Việc xác minh vẫn cần tiếp tục; báo cáo chưa phải kết luận video là giả.",
+        "unverified_share",
+      ),
+    ],
+  },
+  {
+    id: "repair_rumor",
+    chapterId: "chapter_2",
+    time: "13:00 · Thông tin mới",
+    title: "Video đã bị cắt ghép",
+    description:
+      "Nguồn gốc video được làm rõ: đoạn chia sẻ làm sai lệch ngữ cảnh. Tin nhắn của bạn đã được vài người chuyển tiếp.",
+    choices: [
+      choice(
+        "correct",
+        "Đính chính ngay tại nhóm và nhờ người nhận cập nhật",
+        { trachNhiem: 12, liemChinh: 8, nhanAi: 6, hieuSuat: -6 },
+        "Bạn không thể thu hồi mọi bản sao, nhưng đính chính tại nơi đã chia sẻ giúp giảm hiểu nhầm và thể hiện trách nhiệm.",
+        "unverified_share",
+      ),
+      choice(
+        "delete",
+        "Xóa tin nhắn của mình và không nói thêm",
+        { hieuSuat: 5, trachNhiem: -5 },
+        "Bản gốc của bạn biến mất, nhưng người đã xem chưa biết thông tin cần được sửa lại.",
+        "unverified_share",
+      ),
+    ],
+  },
+  {
+    id: "unverified_share",
+    chapterId: "chapter_2",
+    time: "18:45 · Nhóm lớp",
+    title: "“Gửi ngay cho mọi người đi!”",
+    description:
+      "Một bài đăng nói lịch kiểm tra thay đổi, nhưng chỉ có ảnh chụp màn hình. Bạn cùng lớp sợ mọi người bỏ lỡ thông báo.",
+    choices: [
+      choice(
+        "official",
+        "Kiểm tra kênh chính thức rồi gửi đường dẫn xác nhận",
+        { trachNhiem: 9, nhanAi: 4, hieuSuat: -4 },
+        "Bạn trả lời chậm hơn vài phút, nhưng mọi người có nguồn để tự đối chiếu.",
+        "chapter_2_end",
+      ),
+      choice(
+        "ask",
+        "Nhờ một bạn liên hệ giảng viên, mình kiểm tra cổng môn học",
+        { nhanAi: 6, trachNhiem: 7, hieuSuat: 2 },
+        "Chia việc giúp kiểm tra nhanh hơn. Hai bạn vẫn cần thống nhất thông tin trước khi thông báo.",
+        "chapter_2_end",
+      ),
+      choice(
+        "forward",
+        "Gửi ảnh ngay để mọi người tự cân nhắc",
+        { hieuSuat: 8, trachNhiem: -9 },
+        "Mọi người nhận tin sớm, nhưng mỗi người lại phải tự xử lý sự bất định và có thể đổi kế hoạch không cần thiết.",
+        "chapter_2_end",
+      ),
+    ],
+  },
+  {
+    id: "chapter_2_end",
+    chapterId: "chapter_2",
+    title: "Tin thật hay tin giả?",
+    checkpoint: true,
+    nextSceneId: "class_file",
+    choices: [],
+  },
+  {
+    id: "class_file",
+    chapterId: "chapter_3",
+    time: "09:30 · Bài tập nhóm",
+    title: "Tệp của cả lớp",
+    description:
+      "AI có thể tổng hợp khảo sát rất nhanh. Tệp hiện có tên, số điện thoại và câu trả lời riêng của nhiều sinh viên. Bạn chưa hỏi họ về việc đưa dữ liệu lên công cụ này.",
+    choices: [
+      choice(
+        "minimize",
+        "Bỏ thông tin nhận diện, chỉ dùng dữ liệu cần thiết đã được đồng ý",
+        { nhanAi: 9, trachNhiem: 10, hieuSuat: -7 },
+        "Bạn tốn công chuẩn bị dữ liệu. Một số câu trả lời vẫn có thể nhận diện người viết nên cần rà soát cả nội dung, không chỉ cột tên.",
+        "class_photo",
+      ),
+      choice(
+        "local",
+        "Tổng hợp thủ công trong tệp nội bộ",
+        { tuLuc: 7, trachNhiem: 6, hieuSuat: -10 },
+        "Bạn giữ dữ liệu trong phạm vi nhóm được phép xử lý. Đổi lại, thời gian tổng hợp dài hơn.",
+        "class_photo",
+      ),
+      choice(
+        "upload",
+        "Tải nguyên tệp lên để có kết quả ngay",
+        { hieuSuat: 15, nhanAi: -12, trachNhiem: -15 },
+        "Bảng tổng hợp có rất nhanh, nhưng dữ liệu người khác đã được gửi đi ngoài phạm vi họ biết.",
+        "data_cleanup",
+      ),
+    ],
+  },
+  {
+    id: "data_cleanup",
+    chapterId: "chapter_3",
+    time: "10:10 · Một tin nhắn riêng",
+    title: "“Bạn đã đưa số của mình lên đâu?”",
+    description:
+      "Một người trong lớp hỏi về tệp đã tải lên. Bạn chưa kiểm tra chính sách lưu trữ của công cụ.",
+    choices: [
+      choice(
+        "respond",
+        "Thông báo rõ, dừng chia sẻ và tìm cách yêu cầu xóa dữ liệu",
+        { trachNhiem: 12, nhanAi: 8, liemChinh: 5, hieuSuat: -10 },
+        "Bạn bắt đầu khắc phục và trao đổi với người bị ảnh hưởng. Yêu cầu xóa không đảm bảo mọi bản sao biến mất ngay.",
+        "class_photo",
+      ),
+      choice(
+        "quiet",
+        "Xóa tệp trên máy mình và trấn an rằng chắc không sao",
+        { hieuSuat: 4, trachNhiem: -10, liemChinh: -6 },
+        "Xóa bản trên máy không xử lý bản đã tải lên. Người bạn vẫn chưa có thông tin để tự bảo vệ mình.",
+        "class_photo",
+      ),
+    ],
+  },
+  {
+    id: "class_photo",
+    chapterId: "chapter_3",
+    time: "15:00 · Chuẩn bị poster",
+    title: "Một tấm ảnh, nhiều người",
+    description:
+      "Bạn muốn dùng AI chỉnh ảnh bạn cùng lớp thành poster hài hước. Tấm ảnh được gửi riêng trong nhóm, không phải để đăng công khai.",
+    choices: [
+      choice(
+        "consent",
+        "Hỏi ý kiến, giải thích cách chỉnh và nơi đăng",
+        { nhanAi: 10, trachNhiem: 6, hieuSuat: -5 },
+        "Có người đồng ý, có người không. Bạn cần tôn trọng từng lựa chọn và chỉnh lại thiết kế.",
+        "shared_notes",
+      ),
+      choice(
+        "illustration",
+        "Dùng hình minh họa không nhận diện người thật",
+        { nhanAi: 7, hieuSuat: -3, tuLuc: 4 },
+        "Poster ít mang tính cá nhân hơn, nhưng vẫn có thể vui mà không đặt người khác vào tình huống khó xử.",
+        "shared_notes",
+      ),
+      choice(
+        "surprise",
+        "Chỉnh và đăng trước để tạo bất ngờ",
+        { hieuSuat: 9, nhanAi: -14, trachNhiem: -7 },
+        "Bạn hoàn thành nhanh, nhưng người trong ảnh có thể thấy bị làm trò cười mà không được lựa chọn.",
+        "shared_notes",
+      ),
+    ],
+  },
+  {
+    id: "shared_notes",
+    chapterId: "chapter_3",
+    time: "20:00 · Ôn tập",
+    title: "Tài liệu được chia sẻ riêng",
+    description:
+      "Một người bạn gửi ghi chép có cả trải nghiệm cá nhân. Bạn muốn nhờ AI tạo bộ thẻ ôn tập cho nhóm.",
+    choices: [
+      choice(
+        "permission",
+        "Xin phép và cùng bỏ phần riêng tư trước khi dùng",
+        { nhanAi: 8, liemChinh: 6, hieuSuat: -4 },
+        "Người bạn biết tài liệu được dùng vào đâu. Hai người mất thêm thời gian chọn phần phù hợp.",
+        "chapter_3_end",
+      ),
+      choice(
+        "own_notes",
+        "Dùng ghi chép của mình, đối chiếu kiến thức sau",
+        { tuLuc: 8, trachNhiem: 4, hieuSuat: -6 },
+        "Bộ thẻ chưa đầy đủ ngay, nhưng bạn kiểm soát được nội dung đã đưa vào công cụ.",
+        "chapter_3_end",
+      ),
+      choice(
+        "all_notes",
+        "Tải tất cả lên vì chỉ dùng để học",
+        { hieuSuat: 10, nhanAi: -8, trachNhiem: -9 },
+        "Mục đích học tập không thay thế sự đồng ý. Những trải nghiệm riêng cũng đã đi cùng nội dung ôn tập.",
+        "chapter_3_end",
+      ),
+    ],
+  },
+  {
+    id: "chapter_3_end",
+    chapterId: "chapter_3",
+    title: "Dữ liệu thuộc về ai?",
+    checkpoint: true,
+    nextSceneId: "algorithm_bias",
+    choices: [],
+  },
+  {
+    id: "algorithm_bias",
+    chapterId: "chapter_4",
+    time: "08:30 · Phân công nhóm",
+    title: "Một gợi ý có thiên kiến",
+    description:
+      "AI đề nghị giao vai trò thuyết trình dựa trên những suy đoán về giới tính và quê quán. Nhóm muốn phân công nhanh để bắt đầu làm.",
+    choices: [
+      choice(
+        "criteria",
+        "Bỏ các suy đoán, hỏi nguyện vọng và dùng tiêu chí phù hợp",
+        { nhanAi: 10, trachNhiem: 9, hieuSuat: -5 },
+        "Việc trao đổi mất thêm thời gian nhưng giúp mỗi người được xem xét từ năng lực và mong muốn thực tế.",
+        "human_review",
+      ),
+      choice(
+        "rotate",
+        "Đề nghị luân phiên vai trò để mọi người có cơ hội thử",
+        { nhanAi: 8, tuLuc: 6, hieuSuat: -7 },
+        "Cả nhóm có cơ hội rèn luyện, dù phải dành thêm thời gian hỗ trợ người chưa quen vai trò.",
+        "human_review",
+      ),
+      choice(
+        "accept",
+        "Theo gợi ý vì AI có vẻ khách quan",
+        { hieuSuat: 9, nhanAi: -12, trachNhiem: -7 },
+        "Phân công nhanh hơn, nhưng suy đoán của công cụ có thể biến thành rào cản thật đối với một người trong nhóm.",
+        "human_review",
+      ),
+    ],
+  },
+  {
+    id: "human_review",
+    chapterId: "chapter_4",
+    time: "14:00 · Trước khi công bố",
+    title: "Ai chịu trách nhiệm cuối cùng?",
+    description:
+      "Bản báo cáo AI hỗ trợ đã rất mượt. Nhóm còn ít thời gian để rà soát và chưa ai nhận trách nhiệm kiểm tra các số liệu.",
+    choices: [
+      choice(
+        "divide_review",
+        "Chia nhau kiểm tra nguồn, phép tính và kết luận",
+        { trachNhiem: 10, tuLuc: 6, hieuSuat: -6 },
+        "Một vài lỗi được phát hiện trước khi công bố. Mỗi người giải thích được phần mình phụ trách thay vì đẩy trách nhiệm cho AI.",
+        "future_practice",
+      ),
+      choice(
+        "narrow",
+        "Giảm phạm vi báo cáo để kiểm tra kỹ phần cốt lõi",
+        { trachNhiem: 8, tuLuc: 4, hieuSuat: -3 },
+        "Báo cáo ít tham vọng hơn nhưng các giới hạn được nói rõ. Bạn chọn chất lượng của phần có thể kiểm chứng.",
+        "future_practice",
+      ),
+      choice(
+        "disclaimer",
+        "Công bố ngay, ghi chú rằng lỗi có thể do AI",
+        { hieuSuat: 12, trachNhiem: -14, liemChinh: -5 },
+        "Ghi chú việc dùng AI là cần thiết, nhưng không thay thế trách nhiệm kiểm tra sản phẩm mà nhóm đứng tên.",
+        "future_practice",
+      ),
+    ],
+  },
+  {
+    id: "future_practice",
+    chapterId: "chapter_4",
+    time: "21:00 · Một cam kết nhỏ",
+    title: "Ngày mai, bạn sẽ dùng AI thế nào?",
+    description:
+      "Bạn nhìn lại các quyết định đã qua. Không có một cách dùng AI phù hợp với mọi việc. Bạn chọn một thói quen có thể thực hành lâu dài.",
+    choices: [
+      choice(
+        "think_first",
+        "Tự phác thảo trước, dùng AI phản biện rồi tự quyết định",
+        { tuLuc: 10, trachNhiem: 6, hieuSuat: -3 },
+        "Bạn dành thời gian hình thành ý tưởng của mình trước. AI trở thành nguồn gợi ý để cân nhắc, không quyết định thay bạn.",
+        "chapter_4_end",
+      ),
+      choice(
+        "review_routine",
+        "Dùng AI cho việc phù hợp, duy trì bước kiểm chứng và minh bạch",
+        { trachNhiem: 9, liemChinh: 8, hieuSuat: 4 },
+        "Bạn tận dụng công cụ và xây một quy trình có trách nhiệm. Thói quen chỉ có ý nghĩa khi được thực hiện cả lúc bận rộn.",
+        "chapter_4_end",
+      ),
+      choice(
+        "practice_alone",
+        "Dành những buổi không dùng AI để rèn kỹ năng nền tảng",
+        { tuLuc: 12, hieuSuat: -8 },
+        "Bạn chọn đầu tư vào khả năng tự làm. Sau đó, bạn vẫn có thể cân nhắc AI ở những việc phù hợp.",
+        "chapter_4_end",
+      ),
+    ],
+  },
+  {
+    id: "chapter_4_end",
+    chapterId: "chapter_4",
+    title: "Con người làm chủ AI",
+    checkpoint: true,
+    final: true,
+    choices: [],
+  },
+];
