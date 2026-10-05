@@ -8,6 +8,7 @@ import { getProfile } from "../src/game/profileEngine.js";
 import {
   createInitialState,
   applyChoice,
+  applySceneTimeout,
   advanceState,
   getSceneById,
   getNextScene,
@@ -15,6 +16,7 @@ import {
   restoreState,
   stateError,
 } from "../src/game/gameEngine.js";
+import { shuffledChoices } from "../src/game/choiceOrder.js";
 import { loadPending, storePending } from "../src/game/recovery.js";
 test("effects clamp 0–100 without mutating the previous profile", () => {
   const original = { ...initialStats, tuLuc: 95, nhanAi: 3 };
@@ -70,6 +72,7 @@ test("every content branch reaches a final checkpoint without cycles or missing 
     assert.ok(!path.has(id), `Cycle at ${id}`);
     const scene = getSceneById(id);
     assert.ok(scene);
+    if (reached.has(id)) return;
     reached.add(id);
     if (scene.final) return;
     const nextPath = new Set([...path, id]);
@@ -170,4 +173,42 @@ test("pending storage survives reload, ignores corrupted cache and handles stora
     ),
     false,
   );
+});
+test("each chapter has one new situation before its checkpoint", () => {
+  const pairs = [
+    ["disclosure", "ai_peer_help", "chapter_1_end"],
+    ["unverified_share", "fact_check_followup", "chapter_2_end"],
+    ["shared_notes", "data_retention", "chapter_3_end"],
+    ["future_practice", "fair_opportunity", "chapter_4_end"],
+  ];
+  for (const [before, extra, checkpoint] of pairs) {
+    assert.ok(getSceneById(before).choices.every((choice) => choice.nextSceneId === extra));
+    assert.ok(getSceneById(extra).choices.every((choice) => choice.nextSceneId === checkpoint));
+  }
+});
+test("choice order is stable per device and does not mutate choice IDs or routing", () => {
+  const choices = getSceneById("deadline_start").choices;
+  const original = choices.map((choice) => choice.id);
+  const orders = new Set();
+  for (let i = 0; i < 20; i++) {
+    const shuffled = shuffledChoices(choices, `device-${i}:deadline_start`);
+    assert.deepEqual(shuffled.map((choice) => choice.id), shuffledChoices(choices, `device-${i}:deadline_start`).map((choice) => choice.id));
+    assert.deepEqual(shuffled.map((choice) => choice.id).sort(), [...original].sort());
+    orders.add(shuffled.map((choice) => choice.id).join(","));
+  }
+  assert.ok(orders.size > 1);
+  assert.deepEqual(choices.map((choice) => choice.id), original);
+});
+test("20-second timeout deducts three from all five stats exactly once", () => {
+  const initial = { ...createInitialState(), sceneStartedAt: 1000 };
+  assert.equal(applySceneTimeout(initial, 20999), initial);
+  const timedOut = applySceneTimeout(initial, 21000);
+  assert.deepEqual(timedOut.stats, Object.fromEntries(Object.keys(initialStats).map((key) => [key, 47])));
+  assert.equal(timedOut.timeoutCount, 1);
+  assert.equal(applySceneTimeout(timedOut, 99999), timedOut);
+  const chosen = applyChoice(timedOut, "ai_support");
+  assert.equal(chosen.timerExpired, true);
+  const next = advanceState(chosen);
+  assert.equal(next.timerExpired, false);
+  assert.equal(next.sceneStartedAt, null);
 });

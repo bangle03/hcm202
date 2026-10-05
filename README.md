@@ -4,7 +4,7 @@ Web game lớp học cho khoảng 35 sinh viên, chủ đề **Đạo đức và
 
 ## Phạm vi hiện tại
 
-Đã triển khai **Phase 1–4**: React, Vite, Tailwind, Firebase Anonymous Auth, phòng realtime và hành trình cá nhân gồm 4 chương, 15 tình huống hành động, 4 checkpoint. Có phân nhánh, hậu quả, 5 chỉ số, lưu/khôi phục tiến trình, hồ sơ cuối game và 3 sự kiện toàn lớp realtime. Luồng tạo phòng → tham gia → chờ → bắt đầu được giữ nguyên.
+Đã triển khai **Phase 1–4**: React, Vite, Tailwind, Firebase Anonymous Auth, phòng realtime và hành trình cá nhân gồm 4 chương, 19 tình huống hành động, 4 checkpoint. Có phân nhánh, hậu quả, 5 chỉ số, lưu/khôi phục tiến trình, hồ sơ cuối game và 3 sự kiện toàn lớp realtime. Luồng tạo phòng → tham gia → chờ → bắt đầu được giữ nguyên.
 
 Host đã có bảng Top điểm và danh sách phòng cũ từ các cập nhật trước. Chưa có giải thưởng. Nội dung MVP dựa trên nguyên tắc người dùng cung cấp, chưa đối chiếu tài liệu học thuật gốc. Xem [báo cáo Phase 4](PHASE4.md) để biết schema, cách kiểm thử và giới hạn.
 
@@ -138,6 +138,7 @@ Kiểm tra Phase 3 ngày 05/10/2026: build/lint đạt, 18/18 kiểm thử engin
 - Thanh nhạc trên đầu trang: **Bật nhạc nền**, **Tắt nhạc**, âm lượng. Nhạc ambient tổng hợp riêng bằng Web Audio, hợp âm chậm, không lời/không trống, không tải nhạc bên ngoài. Mặc định tắt, âm lượng 25%; cần người dùng bấm để phát theo chính sách trình duyệt. Khi ẩn tab, nhạc tạm dừng; quay lại bấm bật để phát tiếp. Trong lớp nên chỉ bật ở laptop host.
 - Host có **Top điểm làm chủ AI** hiển thị toàn bộ người đã hoàn thành, điểm giảm dần; cùng điểm ưu tiên `finishedAt` sớm hơn. Người chưa hoàn thành không bị tính là 0 điểm. Chưa có phân giải thưởng.
 - Sau khi hoàn thành, player bấm **Vào phòng khác** trên hồ sơ cuối, nhập mã phòng mới và chơi lại trên cùng thiết bị. UID ẩn danh được giữ; tiến trình mới lưu theo mã phòng mới, còn kết quả phòng cũ vẫn ở Firebase. Phòng mới phải còn ở trạng thái chờ.
+- Mỗi chương có thêm một tình huống trước checkpoint. Thứ tự lựa chọn được trộn theo UID thiết bị và giữ ổn định khi refresh; ID lựa chọn và nhánh truyện không đổi. Mỗi tình huống có 20 giây tính từ lúc Firebase lưu scene; hết giờ, cả 5 chỉ số cá nhân giảm 3 điểm **một lần**, sau đó player vẫn chọn được. Đồng hồ và cờ hết giờ được lưu cùng tiến trình để không đặt lại khi refresh. Cần publish lại `firebase.rules.json` trước khi redeploy Vercel vì tiến trình có thêm `sceneStartedAt`, `timerExpired` và `timeoutCount`.
 - **Phòng đã tạo → Xem danh sách cũ** nằm ngay phía trên trang host. Mở mục này và chọn mã phòng để xem lại người tham gia/bảng điểm. Tự tìm cả các phòng tạo trước bản cập nhật, miễn `hostId` còn trùng UID hiện tại. Không xóa dữ liệu phòng cũ khi tạo phòng mới.
 - Cần **publish lại `firebase.rules.json`** để bật query lịch sử theo `hostId` và chỉ mục tương ứng. Không cho query danh sách phòng của UID khác hoặc đọc toàn bộ rooms không lọc. Lịch sử vẫn cần giữ phiên anonymous của host; không tự nhận lại quyền chủ phòng khi xóa dữ liệu trình duyệt hoặc đổi tài khoản.
 - Sau khi publish rules, redeploy Vercel. Không cần thêm biến môi trường, API âm nhạc hay dependency mới.

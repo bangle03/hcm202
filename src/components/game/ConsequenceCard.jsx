@@ -31,6 +31,7 @@ export default function ConsequenceCard({
       </div>
       <h2 className="choice-heading">Hậu quả</h2>
       <p className="scene-description">{choice.consequence}</p>
+      {state.timerExpired && <p className="notice">Bạn đã hết thời gian ở tình huống này; mỗi chỉ số cá nhân giảm 3 điểm.</p>}
       <p className="scene-footnote">
         Thay đổi theo lựa chọn; mỗi chỉ số được giới hạn từ 0 đến 100.
       </p>

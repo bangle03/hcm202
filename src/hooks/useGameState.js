@@ -1,17 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { db } from "../firebase/config";
 import { saveProgress } from "../firebase/gameService";
 import {
   applyChoice,
+  applySceneTimeout,
   advanceState,
   createInitialState,
   restoreState,
   stateError,
+  SCENE_CHOICE_SECONDS,
 } from "../game/gameEngine";
 import { loadPending, storePending } from "../game/recovery";
 import { errorMessage } from "../utils/errors";
 
-export function useGameState({ code, uid, startedAt, player, online }) {
+export function useGameState({ code, uid, startedAt, player, online, serverNow }) {
   const cacheKey = `ai-game:${code}:${uid}:${startedAt}`;
   const [pending, setPending] = useState(() =>
     loadPending(localStorage, cacheKey),
@@ -19,6 +21,8 @@ export function useGameState({ code, uid, startedAt, player, online }) {
   const [state, setState] = useState(
     () => pending?.next || restoreState(player),
   );
+  const stateRef = useRef(state);
+  stateRef.current = state;
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [retryCount, setRetryCount] = useState(0);
@@ -30,6 +34,19 @@ export function useGameState({ code, uid, startedAt, player, online }) {
     const remote = restoreState(player);
     if (remote) {
       initialized.current = true;
+      if (
+        remote.gamePhase === "scene" && !Number.isFinite(remote.sceneStartedAt) &&
+        (!stateRef.current || stateRef.current.revision <= remote.revision)
+      ) {
+        const next = { ...remote, sceneStartedAt: null, timerExpired: false };
+        const migration = { id: crypto.randomUUID(), baseRevision: remote.revision || 0, next };
+        if (!storePending(localStorage, cacheKey, migration))
+          setNotice("Trình duyệt không lưu được bản dự phòng. Hãy chờ xác nhận đồng bộ trước khi đóng trang.");
+        lock.current = true;
+        setState(next);
+        setPending(migration);
+        return;
+      }
       setState((current) =>
         current && current.revision > remote.revision ? current : remote,
       );
@@ -75,7 +92,7 @@ export function useGameState({ code, uid, startedAt, player, online }) {
     };
   }, [pending, online, code, uid, cacheKey, retryCount]);
 
-  function transition(reducer) {
+  const transition = useCallback((reducer) => {
     if (lock.current || !online || !state || stateError(state)) return;
     try {
       const next = reducer(state);
@@ -96,7 +113,14 @@ export function useGameState({ code, uid, startedAt, player, online }) {
     } catch (err) {
       setError(errorMessage(err));
     }
-  }
+  }, [online, state, cacheKey]);
+  useEffect(() => {
+    if (
+      online && !pending && state?.gamePhase === "scene" &&
+      !state.timerExpired && Number.isFinite(state.sceneStartedAt) &&
+      serverNow >= state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+    ) transition((current) => applySceneTimeout(current, serverNow));
+  }, [online, pending, state, serverNow, transition]);
   const invalid = stateError(state);
   useEffect(() => {
     if (invalid && import.meta.env.DEV)
@@ -108,7 +132,11 @@ export function useGameState({ code, uid, startedAt, player, online }) {
     invalid,
     notice,
     saving: !!pending,
-    choose: (id) => transition((current) => applyChoice(current, id)),
+    choose: (id) => transition((current) =>
+      !current.timerExpired && Number.isFinite(current.sceneStartedAt) &&
+      serverNow >= current.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+        ? applySceneTimeout(current, serverNow)
+        : applyChoice(current, id)),
     continueGame: () => transition(advanceState),
     retry: () => setRetryCount((value) => value + 1),
   };

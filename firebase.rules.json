@@ -67,6 +67,15 @@
             "selectedChoiceId": {
               ".validate": "newData.isString() && newData.val().length <= 100"
             },
+            "sceneStartedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "timerExpired": {
+              ".validate": "newData.isBoolean()"
+            },
+            "timeoutCount": {
+              ".validate": "newData.isNumber() && newData.val() % 1 === 0 && newData.val() >= 0 && (!data.exists() ? newData.val() === 0 : (newData.val() === data.val() || newData.val() === data.val() + 1))"
+            },
             "mutationId": {
               ".validate": "newData.isString() && newData.val().length <= 100"
             },

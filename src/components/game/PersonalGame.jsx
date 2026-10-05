@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { useGameState } from "../../hooks/useGameState";
-import { getSceneById } from "../../game/gameEngine";
+import { getSceneById, SCENE_CHOICE_SECONDS } from "../../game/gameEngine";
 import SceneCard from "./SceneCard";
 import ConsequenceCard from "./ConsequenceCard";
 import CheckpointScreen from "./CheckpointScreen";
@@ -26,6 +26,10 @@ export default function PersonalGame(props) {
     return <Navigate to="/play" replace />;
   const disabled = saving || !props.online || !!invalid;
   const scene = getSceneById(state.currentSceneId);
+  const timerReady = Number.isFinite(state.sceneStartedAt);
+  const remainingSeconds = timerReady
+    ? Math.max(0, Math.ceil((state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000 - props.serverNow) / 1000))
+    : SCENE_CHOICE_SECONDS;
   const community = shouldShowCommunity(state, props.room);
   return (
     <div className="personal-game">
@@ -82,6 +86,10 @@ export default function PersonalGame(props) {
                     scene={scene}
                     onChoose={choose}
                     disabled={disabled}
+                    choiceSeed={`${props.code}:${props.uid}`}
+                    remainingSeconds={remainingSeconds}
+                    timerReady={timerReady}
+                    timerExpired={state.timerExpired}
                   />
                 )}{" "}
                 {state.gamePhase === "consequence" && (

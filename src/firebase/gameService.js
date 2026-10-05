@@ -19,6 +19,8 @@ export async function saveProgress(database, code, uid, mutation) {
       delete progress.revision;
       delete progress.mutationId;
       delete progress.finishedAt;
+      if (progress.gamePhase === "scene" && progress.sceneStartedAt == null)
+        progress.sceneStartedAt = serverTimestamp();
       return {
         ...player,
         ...progress,

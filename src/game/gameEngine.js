@@ -7,6 +7,7 @@ export const getSceneById = (id) => sceneMap.get(id) || null;
 export const getNextScene = (choice) => getSceneById(choice.nextSceneId);
 export const isCheckpoint = (scene) => scene?.checkpoint === true;
 export const isFinalScene = (scene) => scene?.final === true;
+export const SCENE_CHOICE_SECONDS = 20;
 export function createInitialState() {
   return {
     currentSceneId: scenes[0].id,
@@ -17,7 +18,23 @@ export function createInitialState() {
     finished: false,
     gamePhase: "scene",
     selectedChoiceId: "",
+    sceneStartedAt: null,
+    timerExpired: false,
+    timeoutCount: 0,
     revision: 0,
+  };
+}
+export function applySceneTimeout(state, timestamp) {
+  if (
+    state.gamePhase !== "scene" || state.finished || state.timerExpired ||
+    !Number.isFinite(state.sceneStartedAt) ||
+    timestamp < state.sceneStartedAt + SCENE_CHOICE_SECONDS * 1000
+  ) return state;
+  return {
+    ...state,
+    stats: applyEffects(state.stats, Object.fromEntries(Object.keys(initialStats).map((key) => [key, -3]))),
+    timerExpired: true,
+    timeoutCount: (state.timeoutCount || 0) + 1,
   };
 }
 export function applyChoice(state, choice, timestamp = Date.now()) {
@@ -75,6 +92,8 @@ export function advanceState(state) {
     currentCheckpoint: isCheckpoint(next) ? chapter : state.currentCheckpoint,
     gamePhase: isCheckpoint(next) ? "checkpoint" : "scene",
     selectedChoiceId: "",
+    sceneStartedAt: null,
+    timerExpired: false,
   };
 }
 // RTDB omits empty arrays. Normalize without replaying any effects on restore.
@@ -93,6 +112,9 @@ export function restoreState(raw) {
       "finalScore",
       "finishedAt",
       "mutationId",
+      "sceneStartedAt",
+      "timerExpired",
+      "timeoutCount",
     ]
       .filter((key) => raw[key] !== undefined)
       .map((key) => [key, raw[key]]),
@@ -101,6 +123,8 @@ export function restoreState(raw) {
     ? raw.history
     : Object.values(raw.history || {});
   state.selectedChoiceId ||= "";
+  state.timerExpired ??= false;
+  state.timeoutCount ??= 0;
   return state;
 }
 export function stateError(state) {
@@ -117,6 +141,10 @@ export function stateError(state) {
     !Array.isArray(state.history) ||
     !Number.isInteger(state.revision) ||
     state.revision < 0 ||
+    (state.sceneStartedAt != null && !Number.isFinite(state.sceneStartedAt)) ||
+    typeof state.timerExpired !== "boolean" ||
+    !Number.isInteger(state.timeoutCount) ||
+    state.timeoutCount < 0 ||
     (state.finished && !Number.isFinite(state.finalScore))
   )
     return "Không thể đọc tiến trình đã lưu. Vui lòng thử tải lại trang.";
