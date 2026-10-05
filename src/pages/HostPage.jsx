@@ -7,6 +7,8 @@ import AuthNotice from "../components/AuthNotice";
 import RoomView, { isConnected } from "../components/RoomView";
 import Leaderboard from "../components/Leaderboard";
 import HostRoomHistory from "../components/HostRoomHistory";
+import { useCommunityCoordinator } from "../hooks/useCommunityCoordinator";
+import HostCommunityView from "../components/community/HostCommunityView";
 export default function HostPage() {
   const { user } = useAuth();
   const [code, setCode] = useState(
@@ -19,6 +21,7 @@ export default function HostPage() {
     member,
     loading,
   } = useRoom(code, user, "host");
+  const { serverNow, error: communityError } = useCommunityCoordinator({ code, uid: user?.uid, room, online });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
@@ -62,9 +65,9 @@ export default function HostPage() {
         onOpen={openPastRoom}
         disabled={busy}
       />
-      {(error || roomError) && (
+      {(error || roomError || communityError) && (
         <p className="notice error" role="alert">
-          {error || roomError}
+          {error || roomError || communityError}
         </p>
       )}
       {!code ? (
@@ -163,6 +166,7 @@ export default function HostPage() {
               {room.status !== "waiting" && (
                 <Leaderboard players={room.players} />
               )}
+              <HostCommunityView room={room} serverNow={serverNow} />
               <RoomView room={room} uid={user.uid} />
               {allFinished && (
                 <div className="start-row">

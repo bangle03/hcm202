@@ -74,7 +74,7 @@ export default function BackgroundMusic() {
       >
         {playing ? "Ⅱ Tắt nhạc" : "♫ Bật nhạc nền"}
       </button>
-      <span className="music-description">Giai điệu nhẹ, không lời</span>
+      <span className="music-description">Giai điệu tươi sáng, nhẹ nhàng</span>
       <label className="volume-control">
         Âm lượng
         <input

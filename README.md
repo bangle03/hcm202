@@ -4,11 +4,11 @@ Web game lớp học cho khoảng 35 sinh viên, chủ đề **Đạo đức và
 
 ## Phạm vi hiện tại
 
-Đã triển khai **Phase 1–3**: React, Vite, Tailwind, Firebase Anonymous Auth, phòng realtime và hành trình cá nhân gồm 4 chương, 15 tình huống hành động, 4 checkpoint. Có phân nhánh, hậu quả, 5 chỉ số, lưu/khôi phục tiến trình và hồ sơ cuối game. Luồng tạo phòng → tham gia → chờ → bắt đầu được giữ nguyên.
+Đã triển khai **Phase 1–4**: React, Vite, Tailwind, Firebase Anonymous Auth, phòng realtime và hành trình cá nhân gồm 4 chương, 15 tình huống hành động, 4 checkpoint. Có phân nhánh, hậu quả, 5 chỉ số, lưu/khôi phục tiến trình, hồ sơ cuối game và 3 sự kiện toàn lớp realtime. Luồng tạo phòng → tham gia → chờ → bắt đầu được giữ nguyên.
 
-**Chưa triển khai Community Event, leaderboard hoặc giải thưởng.** Nội dung MVP dựa trên nguyên tắc người dùng cung cấp, chưa đối chiếu tài liệu học thuật gốc. Xem [báo cáo Phase 3](PHASE3.md) để biết schema, các file, cách kiểm thử và phần dành cho Phase 4.
+Host đã có bảng Top điểm và danh sách phòng cũ từ các cập nhật trước. Chưa có giải thưởng. Nội dung MVP dựa trên nguyên tắc người dùng cung cấp, chưa đối chiếu tài liệu học thuật gốc. Xem [báo cáo Phase 4](PHASE4.md) để biết schema, cách kiểm thử và giới hạn.
 
-**Khi nâng cấp từ Phase 2:** publish lại toàn bộ `firebase.rules.json` trong Firebase Console rồi redeploy Vercel. Rules cũ chỉ cho phép tiến trình bằng 0 nên sẽ từ chối lưu gameplay. Không cần xóa phòng cũ: người chơi chưa có state sẽ bắt đầu hành trình khi phòng đang chơi.
+**Khi nâng cấp lên Phase 4:** publish lại toàn bộ `firebase.rules.json` trong Firebase Console rồi redeploy Vercel. Rules cũ sẽ từ chối bình chọn và lưu kết quả sự kiện. Hãy tạo phòng mới để chơi đủ luồng Phase 4.
 
 Frontend deploy **Vercel**, dữ liệu dùng **Firebase Realtime Database**. Không có Express, Socket.IO, Firestore, Cloud Functions hay backend riêng.
 
@@ -74,7 +74,7 @@ rooms/{roomCode}
 
 `connected` được suy ra từ việc `connections` có phần tử. Mỗi tab đăng ký một connection và `onDisconnect().remove()` trước khi đánh dấu online. Nhờ đó đóng một tab không làm mất trạng thái online của tab còn lại. Firebase có thể cần thời gian phát hiện mất mạng đột ngột.
 
-Phase 3 bổ sung tiến trình và kết quả dưới `players/{uid}`, xem schema trong `PHASE3.md`. `activeCommunityEventId` và nhánh `community` sẽ được thêm cùng rules ở Phase 4.
+Phase 3 bổ sung tiến trình và kết quả dưới `players/{uid}`, xem schema trong `PHASE3.md`. Phase 4 bổ sung nhánh `community` và 3 sự kiện toàn lớp; xem `PHASE4.md`.
 
 ## Đồng bộ và quyền truy cập
 

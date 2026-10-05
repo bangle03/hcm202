@@ -153,6 +153,9 @@ test("room collision cannot overwrite host and invalid player data rejected", as
   await assertFails(join("student", "36"));
 });
 import { saveProgress } from "../src/firebase/gameService.js";
+import { triggerCommunityEvent, setEventDeadline, finalizeCommunityEvent, voteInCommunity } from "../src/firebase/communityCoordinator.js";
+import { communityEvents } from "../src/data/communityEvents.js";
+import { getCheckpointProgress } from "../src/game/communityEngine.js";
 import {
   createInitialState,
   applyChoice,
@@ -209,6 +212,16 @@ test("Firebase syncs each checkpoint and final fields; completed result remains 
   let state = await startAndInitialize();
   const checkpoints = [];
   for (let i = 0; i < 70 && !state.finished; i++) {
+    if (state.gamePhase === "checkpoint" && state.currentChapter < 4) {
+      const event = communityEvents[state.currentChapter - 1];
+      const previous = (await get(ref(dbFor("host"), `${roomPath}/community`))).val() || {};
+      const finishedEvent = { id: event.id, checkpoint: event.checkpoint, status: "completed", startedAt: 1, endsAt: 20001, result: { counts: Object.fromEntries(event.choices.map((choice) => [choice.id, 0])), totalVotes: 0, outcomeId: event.outcomes[1].id, completedAt: 20001 } };
+      await set(ref(dbFor("host"), `${roomPath}/community`), {
+        currentEvent: { id: event.id, checkpoint: event.checkpoint, status: "completed", startedAt: 1, endsAt: 20001 },
+        triggered: { ...previous.triggered, [event.id]: true },
+        events: { ...previous.events, [event.id]: finishedEvent },
+      });
+    }
     const next =
       state.gamePhase === "scene"
         ? applyChoice(state, getSceneById(state.currentSceneId).choices[0])
@@ -244,6 +257,44 @@ test("Firebase syncs each checkpoint and final fields; completed result remains 
       serverTimestamp(),
     ),
   );
+});
+test("community trigger, vote and finalize are idempotent and protected by rules", async () => {
+  for (let i = 1; i <= 5; i++) await join(`p${i}`, String(i));
+  await update(ref(dbFor("host"), roomPath), { status: "playing", gameStartedAt: serverTimestamp() });
+  await env.withSecurityRulesDisabled(async (context) => {
+    const database = context.database();
+    for (let i = 1; i <= 5; i++) await update(ref(database, `${roomPath}/players/p${i}`), {
+      connections: { tab: 1 }, currentChapter: 1, currentCheckpoint: i <= 3 ? 1 : 0,
+      gamePhase: i <= 3 ? "checkpoint" : "scene", currentSceneId: i <= 3 ? "checkpoint_1" : "opening",
+      stats: createInitialState().stats, revision: 1, mutationId: "seed", updatedAt: 1, selectedChoiceId: "",
+    });
+  });
+  const definition = communityEvents[0];
+  const host = dbFor("host");
+  assert.equal((await triggerCommunityEvent(host, code, "host", definition)).committed, false);
+  await env.withSecurityRulesDisabled(async (context) => {
+    await update(ref(context.database(), `${roomPath}/players/p4`), { currentCheckpoint: 1, gamePhase: "checkpoint", currentSceneId: "checkpoint_1" });
+  });
+  assert.deepEqual(getCheckpointProgress((await get(ref(host, roomPath))).val(), 1), { active: 5, arrived: 4, minimumActive: 2, ready: true });
+  assert.equal((await triggerCommunityEvent(host, code, "host", definition)).committed, true);
+  assert.equal((await triggerCommunityEvent(host, code, "host", definition)).committed, false);
+  await setEventDeadline(host, code, "host", definition);
+  const eventPath = `${roomPath}/community/events/${definition.id}`;
+  const active = (await get(ref(host, eventPath))).val();
+  assert.equal(active.endsAt, active.startedAt + 20000);
+  await assertFails(update(ref(dbFor("p1"), `${roomPath}/players/p1`), { currentChapter: 2, revision: 2 }));
+  await assertFails(voteInCommunity(dbFor("p5"), code, "p4", definition.id, "share"));
+  for (let i = 1; i <= 4; i++) await voteInCommunity(dbFor(`p${i}`), code, `p${i}`, definition.id, "verify");
+  const repeat = await voteInCommunity(dbFor("p1"), code, "p1", definition.id, "share");
+  assert.equal(repeat.choiceId, "verify");
+  await assertFails(set(ref(dbFor("p1"), `${eventPath}/result`), { totalVotes: 99 }));
+  assert.equal((await finalizeCommunityEvent(host, code, "host", definition, Date.now())).committed, true);
+  const completed = (await get(ref(host, eventPath))).val();
+  assert.equal(completed.result.totalVotes, 4);
+  assert.equal(completed.result.outcomeId, "contained");
+  await assertSucceeds(update(ref(dbFor("p1"), `${roomPath}/players/p1`), { currentChapter: 2, revision: 2, gamePhase: "scene" }));
+  assert.equal((await finalizeCommunityEvent(host, code, "host", definition, Date.now() + 30000)).committed, false);
+  assert.equal((await get(ref(host, eventPath))).val().result.totalVotes, 4);
 });
 test("concurrent choices from two tabs commit one revision and retain presence", async () => {
   const state = await startAndInitialize();

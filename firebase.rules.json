@@ -33,7 +33,7 @@
         "players": {
           "$uid": {
             ".write": "(auth != null && auth.uid === $uid && !data.exists() && newData.exists() && root.child('rooms').child($code).child('status').val() === 'waiting' && root.child('rooms').child($code).child('hostId').val() !== auth.uid) || (auth != null && auth.uid === $uid && data.exists() && newData.exists() && root.child('rooms').child($code).child('status').val() === 'playing' && data.child('finished').val() !== true && newData.child('revision').val() === (data.child('revision').exists() ? data.child('revision').val() + 1 : 1))",
-            ".validate": "newData.hasChildren(['name','joinedAt','currentChapter','currentCheckpoint','finished','seat']) && newData.parent().parent().child('seats').child(newData.child('seat').val()).val() === $uid && (!data.exists() || (newData.child('name').val() === data.child('name').val() && newData.child('seat').val() === data.child('seat').val() && newData.child('joinedAt').val() === data.child('joinedAt').val())) && (!newData.child('currentSceneId').exists() || newData.hasChildren(['stats','gamePhase','revision','mutationId','updatedAt','selectedChoiceId'])) && (newData.child('finished').val() !== true || (newData.child('gamePhase').val() === 'finished' && newData.hasChildren(['finalScore','finishedAt']) && newData.child('currentCheckpoint').val() === 4 && newData.child('finalScore').val() >= (newData.child('stats/liemChinh').val()+newData.child('stats/trachNhiem').val()+newData.child('stats/tuLuc').val()+newData.child('stats/nhanAi').val())/4 - 0.5 && newData.child('finalScore').val() <= (newData.child('stats/liemChinh').val()+newData.child('stats/trachNhiem').val()+newData.child('stats/tuLuc').val()+newData.child('stats/nhanAi').val())/4 + 0.5)) && (!newData.child('gamePhase').exists() || (newData.child('gamePhase').val() !== 'finished' || newData.child('finished').val() === true)) && (!data.child('currentSceneId').exists() || newData.child('currentSceneId').exists()) && newData.child('currentCheckpoint').val() <= newData.child('currentChapter').val() && (!newData.child('currentSceneId').exists() || (newData.parent().parent().child('status').val() === 'playing' && newData.child('currentChapter').val() >= 1)) && (newData.child('gamePhase').val() !== 'checkpoint' || newData.child('currentCheckpoint').val() === newData.child('currentChapter').val())",
+            ".validate": "newData.hasChildren(['name','joinedAt','currentChapter','currentCheckpoint','finished','seat']) && newData.parent().parent().child('seats').child(newData.child('seat').val()).val() === $uid && (!data.exists() || (newData.child('name').val() === data.child('name').val() && newData.child('seat').val() === data.child('seat').val() && newData.child('joinedAt').val() === data.child('joinedAt').val())) && (!newData.child('currentSceneId').exists() || newData.hasChildren(['stats','gamePhase','revision','mutationId','updatedAt','selectedChoiceId'])) && (newData.child('finished').val() !== true || (newData.child('gamePhase').val() === 'finished' && newData.hasChildren(['finalScore','finishedAt']) && newData.child('currentCheckpoint').val() === 4 && newData.child('finalScore').val() >= (newData.child('stats/liemChinh').val()+newData.child('stats/trachNhiem').val()+newData.child('stats/tuLuc').val()+newData.child('stats/nhanAi').val())/4 - 0.5 && newData.child('finalScore').val() <= (newData.child('stats/liemChinh').val()+newData.child('stats/trachNhiem').val()+newData.child('stats/tuLuc').val()+newData.child('stats/nhanAi').val())/4 + 0.5)) && (!newData.child('gamePhase').exists() || (newData.child('gamePhase').val() !== 'finished' || newData.child('finished').val() === true)) && (!data.child('currentSceneId').exists() || newData.child('currentSceneId').exists()) && newData.child('currentCheckpoint').val() <= newData.child('currentChapter').val() && (!newData.child('currentSceneId').exists() || (newData.parent().parent().child('status').val() === 'playing' && newData.child('currentChapter').val() >= 1)) && (newData.child('gamePhase').val() !== 'checkpoint' || newData.child('currentCheckpoint').val() === newData.child('currentChapter').val()) && (data.child('gamePhase').val() !== 'checkpoint' || data.child('currentChapter').val() >= 4 || newData.child('currentChapter').val() === data.child('currentChapter').val() || (data.child('currentChapter').val() === 1 && root.child('rooms').child($code).child('community/events/deepfake_class/status').val() === 'completed') || (data.child('currentChapter').val() === 2 && root.child('rooms').child($code).child('community/events/privacy_class/status').val() === 'completed') || (data.child('currentChapter').val() === 3 && root.child('rooms').child($code).child('community/events/bias_class/status').val() === 'completed'))",
             "name": {
               ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30 && (!data.exists() || newData.val() === data.val())"
             },
@@ -129,6 +129,42 @@
               }
             }
           }
+        },
+        "community": {
+          ".validate": "newData.hasChildren(['currentEvent','triggered','events'])",
+          "currentEvent": {
+            ".validate": "newData.hasChildren(['id','checkpoint','status','startedAt']) && (newData.child('id').val() === 'deepfake_class' || newData.child('id').val() === 'privacy_class' || newData.child('id').val() === 'bias_class') && (newData.child('status').val() === 'active' || newData.child('status').val() === 'completed') && newData.child('checkpoint').isNumber() && newData.child('startedAt').isNumber()",
+            "$other": { ".validate": "$other === 'id' || $other === 'checkpoint' || $other === 'status' || $other === 'startedAt' || $other === 'endsAt'" }
+          },
+          "triggered": {
+            "$eventId": {
+              ".validate": "($eventId === 'deepfake_class' || $eventId === 'privacy_class' || $eventId === 'bias_class') && newData.val() === true && (!data.exists() || data.val() === true)"
+            }
+          },
+          "events": {
+            "$eventId": {
+              ".validate": "($eventId === 'deepfake_class' || $eventId === 'privacy_class' || $eventId === 'bias_class') && newData.hasChildren(['id','checkpoint','status','startedAt']) && newData.child('id').val() === $eventId && (newData.child('status').val() === 'active' || newData.child('status').val() === 'completed')",
+              "id": { ".validate": "newData.val() === $eventId" },
+              "checkpoint": { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 3" },
+              "status": { ".validate": "newData.val() === 'active' || newData.val() === 'completed'" },
+              "startedAt": { ".validate": "newData.isNumber()" },
+              "endsAt": { ".validate": "newData.isNumber() && newData.val() === newData.parent().child('startedAt').val() + 20000" },
+              "result": {
+                ".validate": "newData.hasChildren(['counts','totalVotes','outcomeId','completedAt']) && newData.parent().child('status').val() === 'completed' && newData.child('totalVotes').isNumber() && newData.child('completedAt').isNumber()"
+              },
+              "votes": {
+                "$uid": {
+                  ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.exists() && root.child('rooms').child($code).child('status').val() === 'playing' && root.child('rooms').child($code).child('players').child($uid).exists() && root.child('rooms').child($code).child('players').child($uid).child('gamePhase').val() === 'checkpoint' && root.child('rooms').child($code).child('players').child($uid).child('currentCheckpoint').val() === root.child('rooms').child($code).child('community/events').child($eventId).child('checkpoint').val() && root.child('rooms').child($code).child('community/events').child($eventId).child('status').val() === 'active' && root.child('rooms').child($code).child('community/events').child($eventId).child('endsAt').val() > now",
+                  ".validate": "newData.hasChildren(['choiceId','votedAt']) && (!data.exists() || newData.child('choiceId').val() === data.child('choiceId').val()) && (newData.child('votedAt').val() === now || (data.exists() && newData.child('votedAt').val() === data.child('votedAt').val())) && (($eventId === 'deepfake_class' && (newData.child('choiceId').val() === 'share' || newData.child('choiceId').val() === 'ignore' || newData.child('choiceId').val() === 'verify' || newData.child('choiceId').val() === 'report')) || ($eventId === 'privacy_class' && (newData.child('choiceId').val() === 'upload' || newData.child('choiceId').val() === 'redact' || newData.child('choiceId').val() === 'consent' || newData.child('choiceId').val() === 'decline')) || ($eventId === 'bias_class' && (newData.child('choiceId').val() === 'accept' || newData.child('choiceId').val() === 'review' || newData.child('choiceId').val() === 'appeal' || newData.child('choiceId').val() === 'human'))) ",
+                  "choiceId": { ".validate": "newData.isString()" },
+                  "votedAt": { ".validate": "newData.isNumber()" },
+                  "$other": { ".validate": false }
+                }
+              },
+              "$other": { ".validate": false }
+            }
+          },
+          "$other": { ".validate": false }
         },
         "$other": {
           ".validate": false

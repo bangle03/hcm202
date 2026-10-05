@@ -4,7 +4,9 @@ import { useRoom } from "../hooks/useRoom";
 import AuthNotice from "../components/AuthNotice";
 import RoomView from "../components/RoomView";
 import PersonalGame from "../components/game/PersonalGame";
+import { useServerTime } from "../hooks/useCommunityCoordinator";
 export default function PlayerGamePage() {
+  const serverNow = useServerTime();
   const { user } = useAuth();
   const code = localStorage.getItem("ai-player-room");
   const { room, loading, error, online, member } = useRoom(
@@ -67,6 +69,8 @@ export default function PlayerGamePage() {
               startedAt={room.gameStartedAt}
               player={room.players[user.uid]}
               online={online}
+              room={room}
+              serverNow={serverNow}
             />
           )}
         </>

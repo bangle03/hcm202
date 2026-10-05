@@ -1,7 +1,7 @@
 import { chapters } from "../../data/chapters";
 import { statDefinitions } from "../../data/stats";
 import { StatBar } from "./StatsPanel";
-export default function CheckpointScreen({ state, disabled, onContinue }) {
+export default function CheckpointScreen({ state, disabled, onContinue, hideContinue = false }) {
   const chapter = chapters[state.currentChapter - 1];
   return (
     <section className="panel story-card checkpoint-card">
@@ -19,10 +19,10 @@ export default function CheckpointScreen({ state, disabled, onContinue }) {
       <p className="scene-footnote">
         Các quyết định của bạn đang hình thành cách bạn sử dụng AI.
       </p>
-      <button className="primary" disabled={disabled} onClick={onContinue}>
+      {!hideContinue && <button className="primary" disabled={disabled} onClick={onContinue}>
         {chapter.number === 4 ? "Xem hồ sơ của bạn" : "Tiếp tục hành trình"}{" "}
         <span>→</span>
-      </button>
+      </button>}
     </section>
   );
 }

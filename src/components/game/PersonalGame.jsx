@@ -8,6 +8,9 @@ import CheckpointScreen from "./CheckpointScreen";
 import ChapterHeader from "./ChapterHeader";
 import StatsPanel from "./StatsPanel";
 import FinalProfile from "./FinalProfile";
+import { getCheckpointProgress, getVoteProgress, shouldShowCommunity } from "../../game/communityEngine";
+import CommunityWaiting from "../community/CommunityWaiting";
+import CommunityEventScreen from "../community/CommunityEventScreen";
 export default function PersonalGame(props) {
   const { state, error, invalid, notice, saving, choose, continueGame, retry } =
     useGameState(props);
@@ -23,6 +26,7 @@ export default function PersonalGame(props) {
     return <Navigate to="/play" replace />;
   const disabled = saving || !props.online || !!invalid;
   const scene = getSceneById(state.currentSceneId);
+  const community = shouldShowCommunity(state, props.room);
   return (
     <div className="personal-game">
       {notice && (
@@ -89,11 +93,32 @@ export default function PersonalGame(props) {
                   />
                 )}{" "}
                 {state.gamePhase === "checkpoint" && (
-                  <CheckpointScreen
-                    state={state}
-                    disabled={disabled}
-                    onContinue={continueGame}
-                  />
+                  <>
+                    <CheckpointScreen
+                      state={state}
+                      disabled={disabled}
+                      onContinue={continueGame}
+                      hideContinue={!!community}
+                    />
+                    {community && (community.eventState ? (
+                      <CommunityEventScreen
+                        definition={community.event}
+                        eventState={community.eventState}
+                        code={props.code}
+                        uid={props.uid}
+                        online={props.online}
+                        serverNow={props.serverNow}
+                        progress={getVoteProgress(props.room, community.event.id)}
+                        onContinue={continueGame}
+                        disabled={disabled}
+                      />
+                    ) : (
+                      <CommunityWaiting
+                        progress={getCheckpointProgress(props.room, community.event.checkpoint)}
+                        hostOnline={Object.keys(props.room.hostConnections || {}).length > 0}
+                      />
+                    ))}
+                  </>
                 )}
               </div>
               <StatsPanel stats={state.stats} />
