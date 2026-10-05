@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useRoom } from "../hooks/useRoom";
-import { createRoom, startRoom } from "../firebase/roomService";
+import { CAPACITY, createRoom, startRoom } from "../firebase/roomService";
 import { errorMessage } from "../utils/errors";
 import AuthNotice from "../components/AuthNotice";
 import RoomView, { isConnected } from "../components/RoomView";
@@ -79,7 +79,7 @@ export default function HostPage() {
             Nhiều góc nhìn.
           </h1>
           <p>
-            Tạo không gian cho tối đa 35 sinh viên cùng khám phá cách làm chủ
+            Tạo không gian cho tối đa {CAPACITY} sinh viên cùng khám phá cách làm chủ
             AI.
           </p>
           <button
@@ -142,7 +142,7 @@ export default function HostPage() {
                 <div>
                   <strong>
                     {players.length}
-                    <small> / 35</small>
+                    <small> / {room.capacity || CAPACITY}</small>
                   </strong>
                   <span>Đã tham gia</span>
                 </div>

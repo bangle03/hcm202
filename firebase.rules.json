@@ -17,7 +17,7 @@
           ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || newData.val() === data.val())"
         },
         "capacity": {
-          ".validate": "newData.val() === 35"
+          ".validate": "(newData.val() === 60 && (!data.exists() || data.val() === 60)) || (data.val() === 35 && newData.val() === 35)"
         },
         "status": {
           ".validate": "(!data.exists() && newData.val() === 'waiting') || (data.val() === 'waiting' && (newData.val() === 'waiting' || newData.val() === 'playing')) || (data.val() === 'playing' && newData.val() === 'playing')"
@@ -59,7 +59,7 @@
               ".validate": false
             },
             "seat": {
-              ".validate": "newData.isString() && newData.val().matches(/^([1-9]|[12][0-9]|3[0-5])$/) && (!data.exists() || newData.val() === data.val())"
+              ".validate": "newData.isString() && newData.val().matches(/^([1-9]|[1-5][0-9]|60)$/) && (!data.exists() || newData.val() === data.val())"
             },
             "currentSceneId": {
               ".validate": "newData.isString() && newData.val().length <= 100"
@@ -181,7 +181,7 @@
         "seats": {
           "$seat": {
             ".write": "auth != null && !data.exists() && newData.val() === auth.uid && root.child('rooms').child($code).child('status').val() === 'waiting'",
-            ".validate": "$seat.matches(/^([1-9]|[12][0-9]|3[0-5])$/) && newData.isString() && newData.parent().parent().child('players').child(newData.val()).child('seat').val() === $seat"
+            ".validate": "(($seat.matches(/^([1-9]|[12][0-9]|3[0-5])$/) && newData.parent().parent().child('capacity').val() === 35) || ($seat.matches(/^([1-9]|[1-5][0-9]|60)$/) && newData.parent().parent().child('capacity').val() === 60)) && newData.isString() && newData.parent().parent().child('players').child(newData.val()).child('seat').val() === $seat"
           }
         }
       },

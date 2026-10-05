@@ -1,3 +1,5 @@
+import { CAPACITY } from "../firebase/roomService";
+
 export function isConnected(player) {
   return Object.keys(player.connections || {}).length > 0;
 }
@@ -9,7 +11,7 @@ export default function RoomView({ room, uid }) {
     <section className="panel roster">
       <div className="section-heading">
         <h2>Lớp học của chúng ta</h2>
-        <span>{players.length} / 35 người</span>
+        <span>{players.length} / {room.capacity || CAPACITY} người</span>
       </div>
       {players.length ? (
         <div className="player-grid">

@@ -38,7 +38,7 @@ async function create() {
     roomCode: code,
     hostId: "host",
     status: "waiting",
-    capacity: 35,
+    capacity: 60,
     createdAt: serverTimestamp(),
   });
 }
@@ -103,10 +103,10 @@ test("host transaction starts room; late joining denied and existing presence su
   );
   await assertFails(set(ref(dbFor("host"), `${roomPath}/status`), "waiting"));
 });
-test("only one of two concurrent players can claim the 35th seat", async () => {
+test("only one of two concurrent players can claim the 60th seat", async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     const players = Object.fromEntries(
-      Array.from({ length: 34 }, (_, i) => [
+      Array.from({ length: 59 }, (_, i) => [
         `seed${i}`,
         { ...player(), seat: String(i + 1), joinedAt: 1 },
       ]),
@@ -114,18 +114,18 @@ test("only one of two concurrent players can claim the 35th seat", async () => {
     await update(ref(context.database(), roomPath), {
       players,
       seats: Object.fromEntries(
-        Array.from({ length: 34 }, (_, i) => [String(i + 1), `seed${i}`]),
+        Array.from({ length: 59 }, (_, i) => [String(i + 1), `seed${i}`]),
       ),
     });
   });
   const outcomes = await Promise.allSettled(
-    ["a", "b"].map((uid) => join(uid, "35")),
+    ["a", "b"].map((uid) => join(uid, "60")),
   );
   assert.equal(outcomes.filter((x) => x.status === "fulfilled").length, 1);
   assert.equal(
     Object.keys((await get(ref(dbFor("host"), `${roomPath}/players`))).val())
       .length,
-    35,
+    60,
   );
 });
 test("multiple connections preserve presence and other users cannot remove them", async () => {
@@ -145,12 +145,24 @@ test("room collision cannot overwrite host and invalid player data rejected", as
       roomCode: code,
       hostId: "intruder",
       status: "waiting",
-      capacity: 35,
+      capacity: 60,
       createdAt: serverTimestamp(),
     }),
   );
   await assertFails(join("student", "1", { name: "x".repeat(31) }));
-  await assertFails(join("student", "36"));
+  await assertFails(join("student", "61"));
+  await assertSucceeds(join("student", "60"));
+});
+test("existing 35-seat rooms keep their original capacity and remain playable", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await update(ref(context.database(), roomPath), { capacity: 35 });
+  });
+  await assertSucceeds(join("legacy", "35"));
+  await assertFails(join("extra", "36"));
+  await assertFails(set(ref(dbFor("host"), `${roomPath}/capacity`), 60));
+  await assertSucceeds(update(ref(dbFor("host"), roomPath), {
+    status: "playing", gameStartedAt: serverTimestamp(),
+  }));
 });
 import { saveProgress } from "../src/firebase/gameService.js";
 import { triggerCommunityEvent, setEventDeadline, finalizeCommunityEvent, voteInCommunity } from "../src/firebase/communityCoordinator.js";
@@ -327,7 +339,7 @@ test("finished player can join a new room on the same UID without losing the old
   const nextCode = "DEF234";
   const nextPath = `rooms/${nextCode}`;
   await set(ref(dbFor("host"), nextPath), {
-    roomCode: nextCode, hostId: "host", status: "waiting", capacity: 35,
+    roomCode: nextCode, hostId: "host", status: "waiting", capacity: 60,
     createdAt: serverTimestamp(),
   });
   await assertSucceeds(update(ref(dbFor("student"), nextPath), {

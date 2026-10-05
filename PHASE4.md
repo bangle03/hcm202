@@ -68,4 +68,4 @@ Tự động: `npm test` (Firebase Emulator), `npm run lint`, `npm run build`.
 
 ## 14–15. Giới hạn và Phase 5
 
-Host là coordinator duy nhất; nếu host rời hoàn toàn, checkpoint chờ. Chưa có Cloud Functions, election, analytics hay giải thưởng Phase 5. Room chứa tất cả votes và lịch sử, phù hợp lớp khoảng 35 người nhưng chưa được thử tải 35 thiết bị đồng thời trên mạng lớp. Quyền đọc room hiện tại cho người đã đăng nhập và biết mã; vote UID hiển thị trong dữ liệu RTDB cho client kỹ thuật, dù giao diện không hiện tên bình chọn. Nếu cần bí mật phiếu ở cấp dữ liệu, cần backend/server ở phase sau.
+Host là coordinator duy nhất; nếu host rời hoàn toàn, checkpoint chờ. Chưa có Cloud Functions, election, analytics hay giải thưởng Phase 5. Sức chứa phòng mới đã nâng lên 60 người, nhưng chưa được thử tải 60 thiết bị đồng thời trên mạng lớp. Room chứa tất cả votes và lịch sử. Quyền đọc room hiện tại cho người đã đăng nhập và biết mã; vote UID hiển thị trong dữ liệu RTDB cho client kỹ thuật, dù giao diện không hiện tên bình chọn. Nếu cần bí mật phiếu ở cấp dữ liệu, cần backend/server ở phase sau.

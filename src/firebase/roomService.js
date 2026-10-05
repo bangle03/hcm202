@@ -6,7 +6,7 @@ import {
   update,
 } from "firebase/database";
 import { db } from "./config";
-export const CAPACITY = 35;
+export const CAPACITY = 60;
 export function validateJoin(name, code) {
   if (!name.trim() || name.trim().length > 30)
     throw new Error("Tên cần có từ 1 đến 30 ký tự.");
@@ -53,10 +53,11 @@ export async function joinRoom(uid, name, code) {
     if (room.players?.[uid]) return code;
     if (room.status !== "waiting")
       throw new Error("Phòng đã bắt đầu và không nhận thêm người chơi.");
-    const available = Array.from({ length: CAPACITY }, (_, i) =>
+    const roomCapacity = Math.min(room.capacity || CAPACITY, CAPACITY);
+    const available = Array.from({ length: roomCapacity }, (_, i) =>
       String(i + 1),
     ).filter((seat) => !room.seats?.[seat]);
-    if (!available.length) throw new Error("Phòng đã đủ 35 người.");
+    if (!available.length) throw new Error(`Phòng đã đủ ${roomCapacity} người.`);
     const seat =
       available[
         crypto.getRandomValues(new Uint32Array(1))[0] % available.length

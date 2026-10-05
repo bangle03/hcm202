@@ -1,6 +1,6 @@
 # LÀM CHỦ AI
 
-Web game lớp học cho khoảng 35 sinh viên, chủ đề **Đạo đức và tu dưỡng trong thời đại AI** (Tư tưởng Hồ Chí Minh).
+Web game lớp học cho tối đa 60 sinh viên trong mỗi phòng mới, chủ đề **Đạo đức và tu dưỡng trong thời đại AI** (Tư tưởng Hồ Chí Minh). Phòng cũ giữ sức chứa 35 người đã lưu.
 
 ## Phạm vi hiện tại
 
@@ -57,14 +57,14 @@ rooms/{roomCode}
   roomCode: "AB2C3D"
   hostId: firebaseUid
   status: "waiting" | "playing"
-  capacity: 35
+  capacity: 60 (phòng mới; phòng cũ vẫn có thể là 35)
   createdAt: serverTimestamp
   gameStartedAt: serverTimestamp (sau khi bắt đầu)
   hostConnections/{connectionId}: serverTimestamp
-  seats/{1..35}: firebaseUid
+  seats/{1..60}: firebaseUid
   players/{uid}
     name: string (1–30 ký tự)
-    seat: string ("1" đến "35")
+    seat: string ("1" đến sức chứa của phòng)
     joinedAt: serverTimestamp
     currentChapter: 0
     currentCheckpoint: 0
@@ -80,7 +80,7 @@ Phase 3 bổ sung tiến trình và kết quả dưới `players/{uid}`, xem sch
 
 - Tạo phòng: transaction giữ chỗ mã, thử mã khác khi trùng. Không cho liệt kê toàn bộ `rooms`.
 - Đọc một phòng theo mã: cần đăng nhập ẩn danh. Mã phòng là thông tin để truy cập, không phải cơ chế bảo mật mạnh cho dữ liệu nhạy cảm.
-- Tham gia: atomic update đồng thời `players/{uid}` và một trong 35 `seats`; rules kiểm tra chỗ còn trống, liên kết UID ↔ chỗ và trạng thái chờ ở phía server. Client thử chỗ khác khi có tranh chấp. Nếu hai người tranh suất cuối hoặc host đã bắt đầu, server từ chối lượt không hợp lệ.
+- Tham gia: atomic update đồng thời `players/{uid}` và một ghế trong sức chứa của phòng (60 với phòng mới, 35 với phòng cũ); rules kiểm tra chỗ còn trống, liên kết UID ↔ chỗ và trạng thái chờ ở phía server. Client thử chỗ khác khi có tranh chấp. Nếu hai người tranh suất cuối hoặc host đã bắt đầu, server từ chối lượt không hợp lệ.
 - Bắt đầu: host transaction trên phòng, kiểm tra trạng thái và ít nhất một người online. Ghi `playing` và `gameStartedAt` cùng lúc; không cập nhật lẻ từng player.
 - Player chỉ tạo bản ghi của chính mình; khi phòng bắt đầu, được ghi tiến trình của mình với phiên bản tăng dần. Không đổi tên, seat, UID host hoặc trạng thái phòng và không ghi sang UID khác. Host điều khiển phòng.
 - Presence và listener được dọn khi rời màn hình. Không xóa bản ghi người chơi khi mất mạng, để refresh có thể khôi phục.
@@ -108,7 +108,7 @@ src/
 
 ## Kiểm thử tự động
 
-`npm test` chạy Firebase Database Emulator trên cổng 9000 với project demo, không ghi lên Firebase thật. Cần Java 17+ cho Firebase CLI 14; lần đầu cần mạng để tải emulator. Bộ kiểm thử bao gồm quyền đọc/ghi, host bắt đầu, chặn tham gia muộn, tranh suất thứ 35 và presence nhiều tab.
+`npm test` chạy Firebase Database Emulator trên cổng 9000 với project demo, không ghi lên Firebase thật. Cần Java 17+ cho Firebase CLI 14; lần đầu cần mạng để tải emulator. Bộ kiểm thử bao gồm quyền đọc/ghi, host bắt đầu, chặn tham gia muộn, tranh suất thứ 60, phòng cũ 35 người và presence nhiều tab.
 
 ## Kiểm thử trên Firebase thật trước buổi học
 
@@ -118,11 +118,11 @@ src/
 4. Mở 2 tab player rồi đóng một tab: vẫn online; đóng hết và chờ Firebase phát hiện ngắt: offline.
 5. Host Start: mọi player chuyển sang tình huống đầu tiên; nhấn lại không thay thời điểm bắt đầu.
 6. Người mới vào sau Start bị từ chối, UID cũ vẫn quay lại được.
-7. Kiểm tra 35 người và 2 lượt cạnh tranh suất cuối: không vượt 35.
+7. Kiểm tra 60 người và 2 lượt cạnh tranh suất cuối: không vượt 60.
 8. Kiểm tra ở điện thoại rộng 360px và laptop/projector; tên dài không phá bố cục.
 9. Kiểm tra quyền: player không đổi status, hostId hoặc dữ liệu người khác; người chưa đăng nhập không đọc được phòng.
 
-Firebase có hạn mức tạo anonymous account theo IP. Trước buổi học, cần thử trên mạng Wi-Fi thực tế của lớp và xem hạn mức dự án; 35 thiết bị chung một IP có thể cần chuẩn bị trước.
+Firebase có hạn mức tạo anonymous account theo IP. Trước buổi học, cần thử trên mạng Wi-Fi thực tế của lớp và xem hạn mức dự án; 60 thiết bị chung một IP có thể cần chuẩn bị trước.
 
 ## Tài liệu kỹ thuật
 
