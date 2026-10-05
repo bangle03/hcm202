@@ -19,6 +19,7 @@ export function useRoom(code, user, role) {
       ref(db, `rooms/${code}`),
       (snap) =>
         setState({
+          code,
           room: snap.val(),
           loading: false,
           error: snap.exists() ? "" : "Phòng không tồn tại hoặc đã bị xóa.",
@@ -26,16 +27,20 @@ export function useRoom(code, user, role) {
       (error) =>
         setState((previous) => ({
           ...previous,
+          code,
+          room: previous.code === code ? previous.room : null,
           loading: false,
           error: errorMessage(error),
         })),
     );
   }, [code, user]);
+  const currentState =
+    state.code === code ? state : { room: null, loading: true, error: "" };
   const member =
-    !!state.room &&
+    !!currentState.room &&
     (role === "host"
-      ? state.room.hostId === user?.uid
-      : !!state.room.players?.[user?.uid]);
+      ? currentState.room.hostId === user?.uid
+      : !!currentState.room.players?.[user?.uid]);
   useEffect(() => {
     if (!db || !code || !user || !member) return;
     let live = true;
@@ -63,5 +68,5 @@ export function useRoom(code, user, role) {
       for (const connection of connections) remove(connection).catch(() => {});
     };
   }, [code, user, role, member]);
-  return { ...state, online, member };
+  return { ...currentState, online: member && online, member };
 }

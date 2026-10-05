@@ -34,6 +34,16 @@ export default function HostPage() {
   }
   const players = Object.values(room?.players || {});
   const active = players.filter(isConnected).length;
+  const allFinished =
+    room?.status !== "waiting" &&
+    players.length > 0 &&
+    players.every((player) => player.finished);
+  async function openNewRoom() {
+    const nextCode = await createRoom(user.uid);
+    localStorage.setItem("ai-host-room", nextCode);
+    setCopied(false);
+    setCode(nextCode);
+  }
   return (
     <div className="room-page">
       <div className="eyebrow">KHÔNG GIAN NGƯỜI DẪN · MÀN HÌNH TRÌNH CHIẾU</div>
@@ -58,13 +68,7 @@ export default function HostPage() {
           <button
             className="primary"
             disabled={!user || busy}
-            onClick={() =>
-              action(async () => {
-                const c = await createRoom(user.uid);
-                localStorage.setItem("ai-host-room", c);
-                setCode(c);
-              })
-            }
+            onClick={() => action(openNewRoom)}
           >
             {busy ? "Đang tạo phòng…" : "Tạo phòng"} <span>↗</span>
           </button>
@@ -80,12 +84,16 @@ export default function HostPage() {
                   <span className="pill">
                     {room.status === "waiting"
                       ? "ĐANG CHỜ NGƯỜI CHƠI"
-                      : "LỚP HỌC ĐÃ BẮT ĐẦU"}
+                      : allFinished
+                        ? "CẢ LỚP ĐÃ HOÀN THÀNH"
+                        : "LỚP HỌC ĐÃ BẮT ĐẦU"}
                   </span>
                   <h1>
                     {room.status === "waiting"
                       ? "Cùng nhau, sẵn sàng."
-                      : "Những lựa chọn đang tiếp diễn."}
+                      : allFinished
+                        ? "Một hành trình đã hoàn thành."
+                        : "Những lựa chọn đang tiếp diễn."}
                   </h1>
                   <p>
                     {online
@@ -139,6 +147,26 @@ export default function HostPage() {
                 </div>
               </div>
               <RoomView room={room} uid={user.uid} />
+              {allFinished && (
+                <div className="start-row">
+                  <p>
+                    Tất cả người chơi đã hoàn thành. Bạn có thể tạo phòng cho
+                    lượt tiếp theo.
+                    <br />
+                    <small>
+                      Kết quả trong phòng cũ vẫn được giữ. Người chơi nhập mã
+                      phòng mới để chơi lại.
+                    </small>
+                  </p>
+                  <button
+                    className="primary"
+                    disabled={busy || !online}
+                    onClick={() => action(openNewRoom)}
+                  >
+                    {busy ? "Đang tạo phòng…" : "Tạo phòng mới"} <span>↗</span>
+                  </button>
+                </div>
+              )}
               {room.status === "waiting" ? (
                 <div className="start-row">
                   <p>
@@ -156,8 +184,9 @@ export default function HostPage() {
                 </div>
               ) : (
                 <div className="notice">
-                  Mỗi người đang tự khám phá hành trình của mình. Tiến trình
-                  được lưu khi lựa chọn, chuyển tình huống và hoàn thành chương.
+                  {allFinished
+                    ? "Hồ sơ cuối đã được lưu cho tất cả người chơi."
+                    : "Mỗi người đang tự khám phá hành trình của mình. Tiến trình được lưu khi lựa chọn, chuyển tình huống và hoàn thành chương."}
                   <div className="host-checkpoints">
                     {[1, 2, 3, 4].map((chapter) => (
                       <span key={chapter}>
