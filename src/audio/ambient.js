@@ -9,7 +9,7 @@ export function createAmbient() {
   master.connect(context.destination);
   const filter = context.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = 1100;
+  filter.frequency.value = 1800;
   filter.Q.value = 0.3;
   filter.connect(master);
   const voices = new Set();
@@ -29,7 +29,7 @@ export function createAmbient() {
     oscillator.type = type;
     oscillator.frequency.value = frequency(midi);
     envelope.gain.setValueAtTime(0, start);
-    envelope.gain.linearRampToValueAtTime(gain, start + 1.5);
+    envelope.gain.linearRampToValueAtTime(gain, start + 0.5);
     envelope.gain.setValueAtTime(gain, start + duration - 2);
     envelope.gain.linearRampToValueAtTime(0, start + duration);
     oscillator.connect(envelope);
@@ -48,8 +48,10 @@ export function createAmbient() {
     if (nextTime < context.currentTime) nextTime = context.currentTime + 0.1;
     while (nextTime < context.currentTime + 1) {
       const notes = chords[chord % chords.length];
-      notes.forEach((midi) => note(midi, nextTime, 10, 0.06));
-      note(notes[2] + 12, nextTime + 3, 5, 0.035);
+      // A little harmonic content helps small speakers reproduce the quiet pad.
+      notes.forEach((midi) => note(midi, nextTime, 10, 0.12, "triangle"));
+      note(notes[2] + 12, nextTime + 0.25, 5, 0.1);
+      note(notes[3] + 12, nextTime + 4, 5, 0.07);
       nextTime += 8;
       chord++;
     }
@@ -59,7 +61,7 @@ export function createAmbient() {
       await context.resume();
       if (context.state !== "running")
         throw new Error("Chạm bật nhạc lần nữa để trình duyệt cho phép phát.");
-      master.gain.setTargetAtTime(volume * 0.45, context.currentTime, 0.6);
+      master.gain.setTargetAtTime(volume * 0.9, context.currentTime, 0.15);
       if (!timer) {
         schedule();
         timer = setInterval(schedule, 500);
@@ -71,7 +73,7 @@ export function createAmbient() {
       await context.suspend();
     },
     setVolume(volume) {
-      master.gain.setTargetAtTime(volume * 0.45, context.currentTime, 0.2);
+      master.gain.setTargetAtTime(volume * 0.9, context.currentTime, 0.2);
     },
     close() {
       clearInterval(timer);

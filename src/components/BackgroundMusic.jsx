@@ -9,10 +9,10 @@ export default function BackgroundMusic() {
   const [volume, setVolume] = useState(() => {
     try {
       const raw = localStorage.getItem("ai-music-volume");
-      const value = raw === null ? 0.25 : Number(raw);
-      return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.25;
+      const value = raw === null ? 0.45 : Number(raw);
+      return Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 0.45;
     } catch {
-      return 0.25;
+      return 0.45;
     }
   });
   useEffect(
@@ -87,6 +87,11 @@ export default function BackgroundMusic() {
         />
         <span>{Math.round(volume * 100)}%</span>
       </label>
+      {playing && volume === 0 && (
+        <span role="status">
+          Âm lượng đang ở 0%. Kéo thanh âm lượng để nghe nhạc.
+        </span>
+      )}
       {error && (
         <span role="alert" className="error">
           {error}
