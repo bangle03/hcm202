@@ -66,7 +66,7 @@ export default function PersonalGame(props) {
       </div>
       {!invalid &&
         (state.finished ? (
-          <FinalProfile state={state} />
+          <FinalProfile state={state} playerName={props.player?.name} />
         ) : (
           <>
             <ChapterHeader state={state} />

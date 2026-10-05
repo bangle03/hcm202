@@ -1,7 +1,8 @@
+import { Link } from "react-router-dom";
 import { getProfile } from "../../game/profileEngine";
 import { statDefinitions } from "../../data/stats";
 import { StatBar } from "./StatsPanel";
-export default function FinalProfile({ state }) {
+export default function FinalProfile({ state, playerName }) {
   const profile = getProfile(state.stats);
   return (
     <section className="panel final-profile">
@@ -32,6 +33,12 @@ export default function FinalProfile({ state }) {
         tính Hiệu suất. Hồ sơ giúp bạn suy ngẫm về cách dùng AI, không đánh giá
         nhân cách hay so sánh ai là người đạo đức hơn.
       </p>
+      <div className="new-room-action">
+        <p>Kết quả lượt này đã được lưu. Bạn có thể dùng chính thiết bị này để tham gia một phòng mới.</p>
+        <Link className="primary" to="/" state={{ newRoom: true, playerName }}>
+          Vào phòng khác <span>↗</span>
+        </Link>
+      </div>
     </section>
   );
 }

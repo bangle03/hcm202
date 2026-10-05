@@ -1300,3 +1300,6 @@ td strong {
 .community-outcome h3 { margin: 0 0 .4rem; }
 .community-outcome p { margin: 0; }
 @media (max-width: 620px) { .community-choices { grid-template-columns: 1fr; } .community-meta { align-items: flex-start; } }
+.new-room-action { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid rgba(93, 123, 155, .3); }
+.new-room-action p { max-width: 48ch; margin: 0; }
+.new-room-action .primary { display: inline-flex; align-items: center; gap: .75rem; text-decoration: none; }

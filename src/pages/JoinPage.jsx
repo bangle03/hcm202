@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { joinRoom } from "../firebase/roomService";
 import { errorMessage } from "../utils/errors";
@@ -7,7 +7,9 @@ import AuthNotice from "../components/AuthNotice";
 export default function JoinPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [name, setName] = useState("");
+  const location = useLocation();
+  const newRoom = location.state?.newRoom === true;
+  const [name, setName] = useState(() => location.state?.playerName || "");
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -63,8 +65,10 @@ export default function JoinPage() {
       <section className="join-side">
         <div className="panel join-panel">
           <span className="pill">MỖI LỰA CHỌN ĐỀU CÓ Ý NGHĨA</span>
-          <h2>Vào lớp thôi.</h2>
-          <p>Nhập tên và mã phòng từ màn hình của giảng viên.</p>
+          <h2>{newRoom ? "Bắt đầu lượt mới." : "Vào lớp thôi."}</h2>
+          <p>{newRoom
+            ? "Nhập mã phòng mới từ giảng viên. Kết quả phòng trước vẫn được lưu."
+            : "Nhập tên và mã phòng từ màn hình của giảng viên."}</p>
           <AuthNotice />
           <form onSubmit={submit}>
             <label htmlFor="name">Bạn tên là gì?</label>
@@ -105,7 +109,7 @@ export default function JoinPage() {
           <div className="privacy">
             ◈ Không cần tài khoản · Không cần mật khẩu
           </div>
-          {localStorage.getItem("ai-player-room") && (
+          {!newRoom && localStorage.getItem("ai-player-room") && (
             <Link className="resume-link" to="/play">
               Quay lại phòng đã tham gia →
             </Link>

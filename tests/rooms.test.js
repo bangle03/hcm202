@@ -296,6 +296,34 @@ test("community trigger, vote and finalize are idempotent and protected by rules
   assert.equal((await finalizeCommunityEvent(host, code, "host", definition, Date.now() + 30000)).committed, false);
   assert.equal((await get(ref(host, eventPath))).val().result.totalVotes, 4);
 });
+test("finished player can join a new room on the same UID without losing the old result", async () => {
+  await join("student");
+  await env.withSecurityRulesDisabled(async (context) => {
+    await update(ref(context.database(), `${roomPath}/players/student`), {
+      finished: true, gamePhase: "finished", currentChapter: 4,
+      currentCheckpoint: 4, finalScore: 82, finishedAt: 12345,
+    });
+  });
+  const nextCode = "DEF234";
+  const nextPath = `rooms/${nextCode}`;
+  await set(ref(dbFor("host"), nextPath), {
+    roomCode: nextCode, hostId: "host", status: "waiting", capacity: 35,
+    createdAt: serverTimestamp(),
+  });
+  await assertSucceeds(update(ref(dbFor("student"), nextPath), {
+    "players/student": { ...player(), name: "Sinh viên", seat: "1" },
+    "seats/1": "student",
+  }));
+  await update(ref(dbFor("host"), nextPath), {
+    status: "playing", gameStartedAt: serverTimestamp(),
+  });
+  const fresh = await saveProgress(dbFor("student"), nextCode, "student", {
+    id: "new-room-init", baseRevision: 0, next: createInitialState(),
+  });
+  assert.equal(fresh.state.currentChapter, 1);
+  assert.equal(fresh.state.finished, false);
+  assert.equal((await get(ref(dbFor("host"), `${roomPath}/players/student`))).val().finalScore, 82);
+});
 test("concurrent choices from two tabs commit one revision and retain presence", async () => {
   const state = await startAndInitialize();
   await set(
