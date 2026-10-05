@@ -282,3 +282,51 @@ test("game writes reject another UID, stats outside range, identity changes and 
     update(target, { revision: state.revision + 1, finalScore: 100 }),
   );
 });
+import { query, orderByChild, equalTo } from "firebase/database";
+test("host history query returns own old rooms and rejects querying another host", async () => {
+  await env.withSecurityRulesDisabled(async (context) => {
+    await set(ref(context.database(), "rooms/OLD234"), {
+      roomCode: "OLD234",
+      hostId: "host",
+      createdAt: 1,
+      status: "playing",
+      capacity: 35,
+      gameStartedAt: 2,
+    });
+    await set(ref(context.database(), "rooms/XYZ234"), {
+      roomCode: "XYZ234",
+      hostId: "another-host",
+      createdAt: 1,
+      status: "waiting",
+      capacity: 35,
+    });
+  });
+  const history = await assertSucceeds(
+    get(
+      query(
+        ref(dbFor("host"), "rooms"),
+        orderByChild("hostId"),
+        equalTo("host"),
+      ),
+    ),
+  );
+  assert.deepEqual(Object.keys(history.val()).sort(), ["ABC234", "OLD234"]);
+  await assertFails(
+    get(
+      query(
+        ref(dbFor("student"), "rooms"),
+        orderByChild("hostId"),
+        equalTo("host"),
+      ),
+    ),
+  );
+  await assertFails(
+    get(
+      query(
+        ref(env.unauthenticatedContext().database(), "rooms"),
+        orderByChild("hostId"),
+        equalTo("host"),
+      ),
+    ),
+  );
+});

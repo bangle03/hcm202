@@ -5,6 +5,8 @@ import { createRoom, startRoom } from "../firebase/roomService";
 import { errorMessage } from "../utils/errors";
 import AuthNotice from "../components/AuthNotice";
 import RoomView, { isConnected } from "../components/RoomView";
+import Leaderboard from "../components/Leaderboard";
+import HostRoomHistory from "../components/HostRoomHistory";
 export default function HostPage() {
   const { user } = useAuth();
   const [code, setCode] = useState(
@@ -44,10 +46,22 @@ export default function HostPage() {
     setCopied(false);
     setCode(nextCode);
   }
+  function openPastRoom(nextCode) {
+    localStorage.setItem("ai-host-room", nextCode);
+    setCopied(false);
+    setError("");
+    setCode(nextCode);
+  }
   return (
     <div className="room-page">
       <div className="eyebrow">KHÔNG GIAN NGƯỜI DẪN · MÀN HÌNH TRÌNH CHIẾU</div>
       <AuthNotice />
+      <HostRoomHistory
+        uid={user?.uid}
+        currentCode={code}
+        onOpen={openPastRoom}
+        disabled={busy}
+      />
       {(error || roomError) && (
         <p className="notice error" role="alert">
           {error || roomError}
@@ -146,6 +160,9 @@ export default function HostPage() {
                   </span>
                 </div>
               </div>
+              {room.status !== "waiting" && (
+                <Leaderboard players={room.players} />
+              )}
               <RoomView room={room} uid={user.uid} />
               {allFinished && (
                 <div className="start-row">

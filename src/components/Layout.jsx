@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import BackgroundMusic from "./BackgroundMusic";
 export default function Layout({ children }) {
   return (
     <div className="app-shell">
@@ -9,6 +10,7 @@ export default function Layout({ children }) {
         </Link>
         <span className="header-label">TƯ TƯỞNG HỒ CHÍ MINH</span>
       </header>
+      <BackgroundMusic />
       <main>{children}</main>
       <footer>
         <span>Đạo đức và tu dưỡng trong thời đại AI</span>
