@@ -1,0 +1,36 @@
+{
+  "name": "lam-chu-ai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "lint": "eslint .",
+    "test": "firebase emulators:exec --only database --project demo-lamchuai \"node --test tests/*.test.js\"",
+    "format": "prettier --write src tests *.json *.js *.html README.md"
+  },
+  "dependencies": {
+    "firebase": "^12.19.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "@tailwindcss/vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.0.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "firebase-tools": "^14.12.1",
+    "globals": "^16.0.0",
+    "prettier": "^3.9.9",
+    "tailwindcss": "^4.0.0",
+    "vite": "^6.1.0"
+  },
+  "overrides": {
+    "@grpc/grpc-js": "^1.13.6"
+  }
+}

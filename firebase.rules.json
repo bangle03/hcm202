@@ -1,0 +1,78 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$code": {
+        ".read": "auth != null && $code.matches(/^[A-Z2-9]{6}$/)",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostId').val() === auth.uid && newData.child('status').val() === 'waiting' && !newData.child('players').exists()) || (data.child('hostId').val() === auth.uid && newData.exists()))",
+        ".validate": "newData.hasChildren(['roomCode','hostId','status','createdAt','capacity']) && $code.matches(/^[A-Z2-9]{6}$/) && (newData.child('status').val() !== 'playing' || newData.child('gameStartedAt').isNumber())",
+        "roomCode": {
+          ".validate": "newData.val() === $code"
+        },
+        "hostId": {
+          ".validate": "newData.isString() && ((!data.exists() && newData.val() === auth.uid) || newData.val() === data.val())"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || newData.val() === data.val())"
+        },
+        "capacity": {
+          ".validate": "newData.val() === 35"
+        },
+        "status": {
+          ".validate": "(!data.exists() && newData.val() === 'waiting') || (data.val() === 'waiting' && (newData.val() === 'waiting' || newData.val() === 'playing')) || (data.val() === 'playing' && newData.val() === 'playing')"
+        },
+        "gameStartedAt": {
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now && newData.parent().child('status').val() === 'playing') || newData.val() === data.val())"
+        },
+        "hostConnections": {
+          "$connection": {
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && !data.exists() && newData.exists() && root.child('rooms').child($code).child('status').val() === 'waiting' && root.child('rooms').child($code).child('hostId').val() !== auth.uid",
+            ".validate": "newData.hasChildren(['name','joinedAt','currentChapter','currentCheckpoint','finished','seat']) && newData.parent().parent().child('seats').child(newData.child('seat').val()).val() === $uid",
+            "name": {
+              ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 30 && (!data.exists() || newData.val() === data.val())"
+            },
+            "joinedAt": {
+              ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === now) || newData.val() === data.val())"
+            },
+            "currentChapter": {
+              ".validate": "newData.val() === 0"
+            },
+            "currentCheckpoint": {
+              ".validate": "newData.val() === 0"
+            },
+            "finished": {
+              ".validate": "newData.val() === false"
+            },
+            "connections": {
+              "$connection": {
+                ".write": "auth != null && auth.uid === $uid && root.child('rooms').child($code).child('players').child($uid).exists()",
+                ".validate": "newData.isNumber()"
+              }
+            },
+            "$other": {
+              ".validate": false
+            },
+            "seat": {
+              ".validate": "newData.isString() && newData.val().matches(/^([1-9]|[12][0-9]|3[0-5])$/) && (!data.exists() || newData.val() === data.val())"
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        },
+        "seats": {
+          "$seat": {
+            ".write": "auth != null && !data.exists() && newData.val() === auth.uid && root.child('rooms').child($code).child('status').val() === 'waiting'",
+            ".validate": "$seat.matches(/^([1-9]|[12][0-9]|3[0-5])$/) && newData.isString() && newData.parent().parent().child('players').child(newData.val()).child('seat').val() === $seat"
+          }
+        }
+      }
+    }
+  }
+}
